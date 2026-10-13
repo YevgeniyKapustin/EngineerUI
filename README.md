@@ -1,4 +1,4 @@
-# engineer-ui
+# EngineerUI
 
 Агент отвечает человеку страницей, а не текстом в терминале. Страница — заметка,
 лист виджетов в стиле чертежа или экран вопроса. Человек отвечает на экране,
@@ -9,8 +9,8 @@
 ## Установка
 
 ```bash
-git clone https://github.com/YevgeniyKapustin/engineer-ui.git
-cd engineer-ui
+git clone https://github.com/YevgeniyKapustin/EngineerUI.git
+cd EngineerUI
 npm run rules:install
 ```
 
