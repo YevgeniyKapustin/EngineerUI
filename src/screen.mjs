@@ -78,14 +78,22 @@ const ANSWERS = {
   checklist: (block, value, where) => listOf(value, block.items, where),
 };
 
-export function parseAnswers(screen, input) {
+const NOTED = new Set(["choice", "checklist"]);
+
+export function parseAnswers(screen, input, notesInput = {}) {
   if (!input || typeof input !== "object") fail("answers", "нужен объект");
+  if (!notesInput || typeof notesInput !== "object") fail("notes", "нужен объект");
   const answers = {};
+  const notes = {};
   for (const block of screen.blocks) {
     if (!ASKING.has(block.kind)) continue;
     const value = input[block.id];
-    if (value === undefined || value === null) continue;
-    answers[block.id] = ANSWERS[block.kind](block, value, `answers.${block.id}`);
+    if (value !== undefined && value !== null)
+      answers[block.id] = ANSWERS[block.kind](block, value, `answers.${block.id}`);
+    const note = notesInput[block.id];
+    if (!NOTED.has(block.kind) || note === undefined || note === null) continue;
+    const trimmed = ANSWERS.input(block, note, `notes.${block.id}`);
+    if (trimmed) notes[block.id] = trimmed;
   }
-  return answers;
+  return Object.keys(notes).length ? { answers, notes } : { answers };
 }

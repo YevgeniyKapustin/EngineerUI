@@ -27,12 +27,15 @@ textarea{display:block;box-sizing:border-box;width:calc(100% - 20px);margin:10px
 .status[data-tone=bad]{color:var(--bad)}
 `;
 
-export const EXPLAIN_SCRIPT = `<script>
+export function explainScript({ nonce, host: mode = "parent" } = {}) {
+  const attribute = nonce ? ` nonce="${nonce}"` : "";
+  return `<script${attribute}>
 (() => {
-  if (window.parent === window) return;
+  const target = ${mode === "self" ? "window" : "window.parent"};
+  if (${mode === "self" ? "false" : "target === window"}) return;
   const host = document.createElement("agent-ui-explain");
   const root = host.attachShadow({ mode: "open" });
-  root.innerHTML = \`<style>${EXPLAIN_CSS}</style>
+  root.innerHTML = \`<style${attribute}>${EXPLAIN_CSS}</style>
 <button class="trigger" type="button" data-testid="explain-trigger" hidden>Спросить агента <span aria-hidden="true">→</span></button>
 <div class="card" role="dialog" aria-label="Вопрос агенту о фрагменте" data-testid="explain-card" hidden>
 <header>Вопрос агенту</header>
@@ -120,7 +123,7 @@ export const EXPLAIN_SCRIPT = `<script>
       sendButton.disabled = false;
       report("Страница не ответила. Обнови вкладку (F5) и спроси снова.", "bad");
     }, 5000);
-    parent.postMessage({ type: "agent-ui:explain", quote: picked.quote, context: picked.context, question: question.value.trim() }, "*");
+    target.postMessage({ type: "agent-ui:explain", quote: picked.quote, context: picked.context, question: question.value.trim() }, "*");
   }
 
   function result({ ok, status: mode, id, listening, error }) {
@@ -132,6 +135,10 @@ export const EXPLAIN_SCRIPT = `<script>
     if (mode === "forked") {
       waiting = id;
       return report("Форк сессии думает над ответом…", "info");
+    }
+    if (mode === "returned") {
+      report("Вопрос ушёл агенту вместо ответа. Агент ответит и спросит снова.", "good");
+      return setTimeout(close, 2600);
     }
     report(listening ? "Агент получил вопрос. Ответ придёт новой версией листа." : "Вопрос в очереди. Агент заберёт его, когда проверит вопросы.", "good");
     setTimeout(close, 2600);
@@ -151,7 +158,7 @@ export const EXPLAIN_SCRIPT = `<script>
   }
 
   addEventListener("message", (event) => {
-    if (event.source !== parent) return;
+    if (event.source !== target) return;
     if (event.data?.type === "agent-ui:explain-result") result(event.data);
     if (event.data?.type === "agent-ui:explain-answer") answered(event.data);
   });
@@ -169,3 +176,6 @@ export const EXPLAIN_SCRIPT = `<script>
   });
 })();
 </script>`;
+}
+
+export const EXPLAIN_SCRIPT = explainScript();

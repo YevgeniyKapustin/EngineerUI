@@ -42,7 +42,7 @@ function assetsOf() {
   return assets;
 }
 
-export function pageOf({ token }) {
+export function pageOf({ token, explain }) {
   const { css, script } = assetsOf();
   const nonce = randomBytes(16).toString("base64");
   const policy = [
@@ -68,5 +68,6 @@ ${frameOpen(` data-testid="ask-sheet"`)}
 <div class="screens" id="screens" data-testid="screens" aria-live="polite"></div>
 <p class="ask-link" id="link" data-testid="link" role="status"></p>
 ${frameClose()}
-<script nonce="${nonce}">${script}</script></body></html>`;
+<script nonce="${nonce}">${script}</script>
+${explain({ nonce, host: "self" })}</body></html>`;
 }

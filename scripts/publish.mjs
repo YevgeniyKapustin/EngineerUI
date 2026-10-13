@@ -1,7 +1,6 @@
-import { execFileSync } from "node:child_process";
 import { parseArgs } from "node:util";
 import { noteSheetOf } from "../src/note.mjs";
-import { base, ensureServer, fail, readSource, runCli } from "./local-server.mjs";
+import { base, ensureServer, fail, placeOf, readSource, runCli } from "./local-server.mjs";
 
 const USAGE = "publish.mjs <page.html | sheet.json | note.txt | -> [--id slug] [--tone good|bad|warn|info]";
 
@@ -15,24 +14,6 @@ function payloadOf(source, content, tone) {
   } catch (error) {
     fail(`лист ${source} — не JSON: ${error.message}`);
   }
-}
-
-function git(...args) {
-  try {
-    return execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
-  } catch {
-    return "";
-  }
-}
-
-function placeOf() {
-  const worktree = git("rev-parse", "--show-toplevel");
-  return worktree ? { worktree, branch: git("branch", "--show-current"), ...agentOf() } : undefined;
-}
-
-function agentOf() {
-  const { CLAUDE_CODE_SESSION_ID: session, CLAUDE_CODE_EXECPATH: command } = process.env;
-  return session && command ? { agent: { kind: "claude", session, command } } : {};
 }
 
 await runCli("agent-ui-publish", "publish_failed", async () => {

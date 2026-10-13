@@ -48,8 +48,17 @@ test("ответ принимает только варианты экрана �
       note: "  ок  ",
       extra: "x",
     }),
-    { target: "main", tags: ["b"], after: ["снимок"], note: "ок" },
+    { answers: { target: "main", tags: ["b"], after: ["снимок"], note: "ок" } },
   );
   assert.throws(() => parseAnswers(screen, { target: "dev" }), /answers\.target/);
   assert.throws(() => parseAnswers(screen, { tags: "a" }), /answers\.tags: нужен список/);
+});
+
+test("уточнение к выбору и перечню приходит агенту рядом с ответом, даже без выбора", () => {
+  const screen = parseScreen(SCREEN);
+  assert.deepEqual(
+    parseAnswers(screen, { target: "main" }, { target: "  после ревью ", tags: "свой: c", after: "   ", note: "x" }),
+    { answers: { target: "main" }, notes: { target: "после ревью", tags: "свой: c" } },
+  );
+  assert.throws(() => parseAnswers(screen, {}, { target: 1 }), /notes\.target: нужна строка/);
 });

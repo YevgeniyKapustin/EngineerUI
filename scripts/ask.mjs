@@ -1,7 +1,7 @@
 import { spawn } from "node:child_process";
 import { request as httpRequest } from "node:http";
 import { parseArgs } from "node:util";
-import { CliFailure, base, ensureServer, fail, readSource, runCli } from "./local-server.mjs";
+import { CliFailure, base, ensureServer, fail, placeOf, readSource, runCli } from "./local-server.mjs";
 
 const USAGE = "ask.mjs <screen.json | -> [--no-open]";
 
@@ -45,7 +45,7 @@ await runCli("agent-ui-ask", "ask_failed", async () => {
   const { viewers } = await ensureServer();
   if (viewers === 0 && !values["no-open"]) openBrowser(base);
   process.stderr.write(`вопрос открыт на ${base}, жду ответа человека\n`);
-  const { status, body } = await postAndWait(`${base}/ask`, JSON.stringify(screen));
+  const { status, body } = await postAndWait(`${base}/ask`, JSON.stringify({ ...screen, place: placeOf() }));
   if (status !== 200) fail(`сервер отказал (${status}): ${body.error}`);
   process.stdout.write(`${JSON.stringify(body)}\n`);
 });

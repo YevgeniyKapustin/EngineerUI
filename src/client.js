@@ -3,6 +3,7 @@ const idle = document.getElementById("idle");
 const link = document.getElementById("link");
 const token = document.body.dataset.token;
 const drafts = new Map();
+const NOTE_KEY = Symbol("notes");
 let answered = false;
 
 function paintIdle() {
@@ -19,6 +20,25 @@ function element(tag, className, text) {
   if (className) node.className = className;
   if (text !== undefined) node.textContent = text;
   return node;
+}
+
+function noteField(block, draft) {
+  const notes = (draft[NOTE_KEY] ??= {});
+  const control = element("textarea", "ask-field ask-note");
+  control.dataset.testid = "choice-note";
+  control.dataset.field = block.id;
+  control.rows = 2;
+  control.placeholder = "Свой вариант или уточнение — агент получит текст вместе с выбором";
+  control.setAttribute("aria-label", `${block.label || "Перечень"}: свой вариант или уточнение`);
+  control.value = notes[block.id] ?? "";
+  control.addEventListener("input", () => (notes[block.id] = control.value));
+  return control;
+}
+
+function withNote(body, block, draft) {
+  const box = element("div", "ask-noted");
+  box.append(body, noteField(block, draft));
+  return box;
 }
 
 function option(label, index, multi, draft, id) {
@@ -60,7 +80,11 @@ const BLOCKS = {
     options.setAttribute("role", "group");
     options.setAttribute("aria-label", block.label);
     options.append(...block.options.map((label, index) => option(label, index, block.multi, draft, block.id)));
-    return { title: block.label, caption: block.multi ? "несколько вариантов" : "один вариант", body: options };
+    return {
+      title: block.label,
+      caption: block.multi ? "несколько вариантов или свой" : "один вариант или свой",
+      body: withNote(options, block, draft),
+    };
   },
 
   input: (block, draft) => {
@@ -72,6 +96,11 @@ const BLOCKS = {
     if (block.multiline) control.rows = 4;
     control.value = draft[block.id] ?? "";
     control.addEventListener("input", () => (draft[block.id] = control.value));
+    // Enter в единственной строке формы отправляет форму целиком; отправка — только кнопкой или Ctrl+Enter
+    if (!block.multiline)
+      control.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && !event.ctrlKey && !event.metaKey) event.preventDefault();
+      });
     return { title: block.label, caption: block.multiline ? "текст" : "строка", body: control };
   },
 
@@ -93,7 +122,7 @@ const BLOCKS = {
       row.append(check, element("span", "", item));
       box.append(row);
     });
-    return { title: block.label || "Перечень", caption: "отметь пункты", body: box };
+    return { title: block.label || "Перечень", caption: "отметь пункты, допиши уточнение", body: withNote(box, block, draft) };
   },
 
   table: (block) => {
@@ -127,11 +156,11 @@ function panel({ title, caption, body }, index) {
   return section;
 }
 
-async function sendAnswer(id, answers) {
+async function sendAnswer(id, draft) {
   const response = await fetch(`/answer/${encodeURIComponent(id)}`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ token, answers }),
+    body: JSON.stringify({ token, answers: draft, notes: draft[NOTE_KEY] ?? {} }),
   });
   if (!response.ok) throw new Error((await response.json()).error);
 }
@@ -162,7 +191,7 @@ function screenCard({ id, screen, at }) {
   const panels = element("div", "panels");
   panels.append(...blocks.map((block, index) => panel(BLOCKS[block.kind](block, draft), index)));
   const actions = element("div", "ask-actions");
-  const status = element("span", "screen-status", "Ответ уйдёт агенту сразу");
+  const status = element("span", "screen-status", "Ответ уйдёт агенту сразу · Ctrl+Enter");
   status.setAttribute("role", "status");
   const submit = element("button", "ask-submit");
   submit.type = "submit";
@@ -170,6 +199,12 @@ function screenCard({ id, screen, at }) {
   submit.append(element("span", "", screen.submit), element("span", "ask-submit-arrow", "→"));
   actions.append(status, submit);
   card.append(stampOf(screen, at, lead), panels, actions);
+  card.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && (event.ctrlKey || event.metaKey) && !submit.disabled) {
+      event.preventDefault();
+      card.requestSubmit(submit);
+    }
+  });
   card.addEventListener("submit", async (event) => {
     event.preventDefault();
     submit.disabled = true;
@@ -205,7 +240,30 @@ function show(asks) {
   document.title = asks.length ? `Вопрос · ${asks[0].screen.title}` : "agent-ui";
 }
 
+async function explain({ quote, question, context }) {
+  const reply = (result) => window.postMessage({ type: "agent-ui:explain-result", ...result }, location.origin);
+  const id = screensBox.firstElementChild?.dataset.askId;
+  if (!id) return reply({ ok: false, error: "открытого вопроса нет" });
+  try {
+    const response = await fetch(`/answer/${encodeURIComponent(id)}/questions`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ token, quote, question, context }),
+    });
+    const body = await response.json();
+    reply(response.ok ? { ok: true, status: body.status, id: body.id } : { ok: false, error: body.error });
+  } catch {
+    reply({ ok: false, error: "сервер agent-ui не ответил" });
+  }
+}
+
+window.addEventListener("message", (event) => {
+  if (event.source === window && event.data?.type === "agent-ui:explain") explain(event.data);
+});
+
 const events = new EventSource("/events");
+events.addEventListener("answer", (event) =>
+  window.postMessage({ type: "agent-ui:explain-answer", ...JSON.parse(event.data) }, location.origin));
 events.addEventListener("asks", (event) => {
   link.textContent = "";
   show(JSON.parse(event.data));

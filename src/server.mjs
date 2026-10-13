@@ -2,9 +2,9 @@ import { randomBytes, timingSafeEqual } from "node:crypto";
 import { createServer } from "node:http";
 import { FRAME_SANDBOX, historyOf, listOf, shellOf } from "./artifact-page.mjs";
 import { FAVICON } from "./favicon.mjs";
-import { createArtifacts } from "./artifacts.mjs";
+import { createArtifacts, placeOf } from "./artifacts.mjs";
 import { createAsks } from "./asks.mjs";
-import { EXPLAIN_SCRIPT } from "./explain.mjs";
+import { EXPLAIN_SCRIPT, explainScript } from "./explain.mjs";
 import { createForks } from "./forks.mjs";
 import { createQuestions, questionOf } from "./questions.mjs";
 import { kitCss, pageOf } from "./page.mjs";
@@ -147,7 +147,7 @@ export function startServer({ port = 0, timeoutMs = 10 * 60_000, artifactsDir, l
     withExplain(kind === "sheet" ? renderSheet(storedText(() => parseSheet(JSON.parse(text))), { origin, history: true }) : text);
 
   const routes = {
-    "GET /": (request, response) => send(response, 200, pageOf({ token }), HTML),
+    "GET /": (request, response) => send(response, 200, pageOf({ token, explain: explainScript }), HTML),
 
     "GET /events": (request, response) => {
       openStream(request, response, viewers, `event: asks\ndata: ${JSON.stringify(asks.list())}\n\n`);
@@ -173,9 +173,10 @@ export function startServer({ port = 0, timeoutMs = 10 * 60_000, artifactsDir, l
       fromAgent(request);
       const input = await readJson(request);
       const screen = steChecked(() => parseScreen(input));
+      const place = placeOf(input.place);
       const cancelled = new Promise((resolve) => response.on("close", resolve));
       if (viewers.size === 0) log({ event: "ask_no_viewer" });
-      const outcome = await asks.ask(screen, cancelled);
+      const outcome = await asks.ask(screen, cancelled, place);
       if (!response.writableEnded && !response.destroyed) send(response, 200, outcome);
     },
 
@@ -183,8 +184,29 @@ export function startServer({ port = 0, timeoutMs = 10 * 60_000, artifactsDir, l
       fromPage(request);
       const body = await readJson(request);
       if (!sameToken(body.token, token)) throw new RequestError(403, "Неверный ключ страницы");
-      asks.answer(id, body.answers);
+      asks.answer(id, body.answers, body.notes ?? {});
       send(response, 200, { status: "answered" });
+    },
+
+    "POST /answer/:id/questions": async (request, response, id) => {
+      fromPage(request);
+      const body = await readJson(request);
+      if (!sameToken(body.token, token)) throw new RequestError(403, "Неверный ключ страницы");
+      const { screen, place } = asks.about(id);
+      const question = questionOf(`вопрос «${screen.title}»`, body);
+      if (!forks.canFork(place)) {
+        asks.returnQuestion(id, question);
+        return send(response, 200, { status: "returned", id: question.id });
+      }
+      if (forks.busy()) throw new RequestError(429, "Уже идут три форка: дождись ответа");
+      forks.ask(question, place).then((answer) => {
+        const frame = `event: answer
+data: ${JSON.stringify({ id: question.id, ...answer })}
+
+`;
+        for (const viewer of viewers) viewer.write(frame);
+      });
+      send(response, 200, { status: "forked", id: question.id });
     },
 
     "POST /artifacts": async (request, response) => {

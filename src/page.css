@@ -44,6 +44,9 @@
   transition: box-shadow .15s;
 }
 .ask-field:focus { outline: none; box-shadow: 4px 4px 0 var(--s-line); }
+.ask-noted { display: flex; flex-direction: column; gap: 12px; }
+.ask-note { font-size: 13px; border-style: dashed; }
+.ask-note:not(:placeholder-shown) { border-style: solid; }
 
 .ask-checks { display: flex; flex-direction: column; border-top: 1px solid var(--s-line); }
 .ask-check { display: flex; align-items: center; gap: 12px; padding: 9px 4px; border-bottom: 1px solid var(--s-line); cursor: pointer; transition: background .15s; }

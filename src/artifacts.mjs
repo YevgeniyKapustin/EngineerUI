@@ -16,7 +16,7 @@ export class ArtifactError extends Error {
 
 const PLACE_LIMIT = 400;
 
-function placeOf(given) {
+export function placeOf(given) {
   if (given === undefined || given === null) return undefined;
   const fields = given && typeof given === "object" ? [given.worktree, given.branch ?? ""] : [];
   if (fields.length !== 2 || fields.some((field) => typeof field !== "string" || field.length > PLACE_LIMIT))

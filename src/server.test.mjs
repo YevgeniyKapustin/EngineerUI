@@ -72,11 +72,11 @@ async function setup(t, options) {
   const page = await call(`${server.url}/`);
   const token = /data-token="([^"]+)"/.exec(page.text)[1];
   const json = { "content-type": "application/json" };
-  const answer = (id, answers, headers = {}) =>
+  const answer = (id, answers, headers = {}, notes) =>
     call(`${server.url}/answer/${id}`, {
       method: "POST",
       headers: { ...json, origin: server.url, ...headers },
-      body: { token, answers },
+      body: { token, answers, notes },
     });
   const ask = (body = SCREEN, headers = {}) =>
     call(`${server.url}/ask`, { method: "POST", headers: { ...json, ...headers }, body });
@@ -177,9 +177,13 @@ test("агент ждёт на /ask, человек отвечает со стр
   const [opened] = await events.until((asks) => asks.length === 1);
   assert.equal(opened.screen.title, "Куда?");
   assert.equal((await answer(opened.id, { target: "dev" })).status, 400);
-  assert.equal((await answer(opened.id, { target: "main" })).status, 200);
+  assert.equal((await answer(opened.id, { target: "main" }, {}, { target: "после ревью" })).status, 200);
   const done = await reply;
-  assert.deepEqual(JSON.parse(done.text), { status: "answered", answers: { target: "main" } });
+  assert.deepEqual(JSON.parse(done.text), {
+    status: "answered",
+    answers: { target: "main" },
+    notes: { target: "после ревью" },
+  });
   await events.until((asks) => asks.length === 0);
   assert.equal((await answer(opened.id, { target: "main" })).status, 409);
 });
@@ -341,4 +345,49 @@ test("вопрос с чужого сайта, с чужим ключом или
   assert.equal((await ask({ token, quote: " " })).status, 400);
   assert.equal((await call(`${server.url}/a/none/questions`, { method: "POST", headers: { "content-type": "application/json", origin: server.url }, body: { token, quote: "x" } })).status, 404);
   assert.equal((await call(`${server.url}/questions`, { headers: { origin: server.url } })).status, 403);
+});
+
+test("на экране вопроса сессии Claude вопрос о фрагменте уходит форку, ответ приходит на экран", async (t) => {
+  const runs = [];
+  const runFork = async (run) => {
+    runs.push(run);
+    return { text: "release — ветка выкладки.", session: "fork-2", cost: 0.1 };
+  };
+  const { server, ask, token, page } = await setup(t, { runFork });
+  assert.match(page.text, /<script nonce="[^"]+">\n\(\(\) => \{\n  const target = window;/);
+  assert.match(page.text, /<style nonce="[^"]+">/);
+  const events = openEvents(server.url);
+  t.after(events.close);
+  const reply = ask({ ...SCREEN, place: AGENT_PLACE });
+  const [opened] = await events.until((asks) => asks.length === 1);
+  const stream = answers(`${server.url}/events`);
+  t.after(stream.close);
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  const answer = stream.next();
+
+  const body = { token, quote: "release", question: "Что это?", context: "Куда?" };
+  const sent = await call(`${server.url}/answer/${opened.id}/questions`, { method: "POST", headers: { "content-type": "application/json", origin: server.url }, body });
+  const { status, id } = JSON.parse(sent.text);
+  assert.equal(status, "forked");
+  assert.deepEqual(await answer, { id, ok: true, text: "release — ветка выкладки." });
+  assert.equal(runs[0].session, AGENT_PLACE.agent.session);
+  assert.match(runs[0].prompt, /«release»/);
+  assert.match(runs[0].prompt, /Куда\?/);
+  reply.catch(() => {});
+});
+
+test("на экране вопроса без сессии Claude вопрос о фрагменте возвращается агенту вместо ответа", async (t) => {
+  const { server, ask, token } = await setup(t);
+  const events = openEvents(server.url);
+  t.after(events.close);
+  const reply = ask();
+  const [opened] = await events.until((asks) => asks.length === 1);
+  const post = (body, origin = server.url) =>
+    call(`${server.url}/answer/${opened.id}/questions`, { method: "POST", headers: { "content-type": "application/json", origin }, body });
+  assert.equal((await post({ token, quote: "release" }, "http://evil.test")).status, 403);
+  assert.equal((await post({ token: "x", quote: "release" })).status, 403);
+  const sent = await post({ token, quote: "release", question: "Что это?", context: "Куда?" });
+  assert.equal(JSON.parse(sent.text).status, "returned");
+  assert.deepEqual(JSON.parse((await reply).text), { status: "question", quote: "release", question: "Что это?", context: "Куда?" });
+  assert.equal((await post({ token, quote: "release" })).status, 409);
 });

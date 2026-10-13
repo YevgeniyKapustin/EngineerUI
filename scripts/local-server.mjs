@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { mkdirSync, openSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
@@ -61,4 +61,22 @@ export async function runCli(component, event, main) {
     process.stderr.write(`${JSON.stringify({ component, event, reason: error.message })}\n`);
     process.exitCode = 1;
   }
+}
+
+function git(...args) {
+  try {
+    return execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+  } catch {
+    return "";
+  }
+}
+
+export function placeOf() {
+  const worktree = git("rev-parse", "--show-toplevel");
+  return worktree ? { worktree, branch: git("branch", "--show-current"), ...agentOf() } : undefined;
+}
+
+function agentOf() {
+  const { CLAUDE_CODE_SESSION_ID: session, CLAUDE_CODE_EXECPATH: command } = process.env;
+  return session && command ? { agent: { kind: "claude", session, command } } : {};
 }
