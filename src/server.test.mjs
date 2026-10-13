@@ -184,6 +184,21 @@ test("агент ждёт на /ask, человек отвечает со стр
   assert.equal((await answer(opened.id, { target: "main" })).status, 409);
 });
 
+test("открытый лист показывает вопрос агента поверх себя, экран вопроса с полями ответа", async (t) => {
+  const { server, publish } = await setup(t);
+  const { url } = JSON.parse((await publish({ html: "<!doctype html><title>Отказ Docs</title><p>Итог</p>" })).text);
+  const shell = (await call(url)).text;
+  assert.match(shell, /new EventSource\("\/events"\)/);
+  assert.match(shell, /addEventListener\("asks"/);
+  assert.match(shell, /id: "ask-layer", src: "\/"/);
+  assert.match(shell, /frame-src 'self'/);
+  assert.doesNotMatch(shell, /id="ask-layer"[^>]*sandbox/);
+  const asking = await call(`${server.url}/`);
+  assert.equal(asking.headers["x-frame-options"], undefined);
+  assert.match(asking.text, /new EventSource\("\/events"\)/);
+  assert.match(asking.text, /element\(block\.multiline \? "textarea" : "input", "ask-field"\)/);
+});
+
 test("ответ с чужого сайта или с чужим ключом не принимается", async (t) => {
   const { server, answer, ask, token } = await setup(t);
   const events = openEvents(server.url);

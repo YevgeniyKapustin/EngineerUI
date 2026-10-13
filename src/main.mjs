@@ -11,5 +11,5 @@ const artifactsDir = process.env.AGENT_UI_ARTIFACTS ?? join(homedir(), ".agent-u
 
 const { url } = await startServer({ port, timeoutMs, artifactsDir, log });
 process.stdout.write(
-  `agent-ui слушает ${url}\nВопросы — ${url}/ask, страницы агента — ${url}/a, хранятся в ${artifactsDir}\n`,
+  `agent-ui слушает ${url}\nВопросы — ${url}/, страницы агента — ${url}/a, хранятся в ${artifactsDir}\n`,
 );

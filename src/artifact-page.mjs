@@ -62,6 +62,10 @@ iframe{display:block;border:0;width:100%;flex:1;background:var(--paper)}
 @media (prefers-reduced-motion:reduce){#rev-tab,#rev-panel,#rev-note,#rev-panel tbody tr,#rev-back{animation:none;transition:none}}
 #rev-back{border:1px solid currentColor;background:transparent;color:inherit;font:inherit;padding:2px 10px;cursor:pointer}
 #rev-back:hover{background:color-mix(in srgb,currentColor 12%,transparent)}
+#ask-layer{position:fixed;inset:0;z-index:5;width:100%;height:100%;border:0;background:var(--paper)}
+#ask-layer[hidden],#ask-toggle[hidden]{display:none}
+#ask-toggle{position:fixed;right:16px;bottom:16px;z-index:6;border:1px solid var(--frame);background:var(--ink);color:var(--paper);font:12px var(--mono);padding:6px 12px;cursor:pointer}
+#ask-toggle:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 `;
 
 export function shellOf({ id, title }, { token }) {
@@ -82,6 +86,7 @@ ${FAVICON_LINK}
 <table><thead><tr><th>№</th><th>Лист</th><th>Дата</th></tr></thead><tbody id="rev-rows"></tbody></table>
 </aside>
 <div id="rev-note" data-testid="revision-note" hidden><span id="rev-note-text"></span><button id="rev-back" type="button" data-testid="revision-back">К текущему</button></div>
+<button id="ask-toggle" type="button" hidden data-testid="ask-toggle"></button>
 <iframe id="frame" data-testid="artifact-frame" sandbox="${FRAME_SANDBOX}" src="${raw}" title="${escape(title || id)}"></iframe>
 <script nonce="${nonce}">
 const id = "${id}";
@@ -235,6 +240,44 @@ events.addEventListener("version", async () => {
 });
 events.addEventListener("answer", (event) =>
   frame.contentWindow?.postMessage({ type: "agent-ui:explain-answer", ...JSON.parse(event.data) }, "*"));
+const sheetTitle = document.title;
+const askToggle = document.getElementById("ask-toggle");
+let askLayer = null;
+let askClose = 0;
+
+function paintAsk() {
+  askToggle.hidden = !askLayer;
+  askToggle.textContent = askLayer?.hidden ? "Вопрос агента ждёт ответа" : "К листу";
+}
+
+function closeAsk() {
+  askLayer.remove();
+  askLayer = null;
+  document.title = sheetTitle;
+  paintAsk();
+}
+
+askToggle.addEventListener("click", () => {
+  askLayer.hidden = !askLayer.hidden;
+  paintAsk();
+});
+const asking = new EventSource("/events");
+asking.addEventListener("asks", (event) => {
+  const open = JSON.parse(event.data);
+  clearTimeout(askClose);
+  if (!open.length) {
+    if (askLayer) askClose = setTimeout(closeAsk, 1500);
+    return;
+  }
+  if (!askLayer) {
+    askLayer = Object.assign(document.createElement("iframe"), { id: "ask-layer", src: "/", title: "Вопрос агента" });
+    askLayer.dataset.testid = "ask-layer";
+    document.body.append(askLayer);
+  }
+  askLayer.hidden = false;
+  document.title = "Вопрос · " + open[0].screen.title;
+  paintAsk();
+});
 refresh();
 </script></body></html>`;
 }
