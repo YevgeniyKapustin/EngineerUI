@@ -48,7 +48,8 @@ iframe{display:block;border:0;width:100%;flex:1;background:var(--paper)}
 #rev-panel tbody tr:focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
 #rev-panel tbody tr.is-other td:nth-child(2){color:var(--muted)}
 .rev-place{text-transform:none;letter-spacing:0;color:var(--muted)}
-#rev-panel tbody tr.is-open{background:var(--stripe);box-shadow:inset 3px 0 var(--ink)}
+#rev-panel tbody tr.is-open,#rev-panel tbody tr.is-open:hover{background:var(--ink);color:var(--paper);box-shadow:none}
+#rev-panel tbody tr.is-open td{color:var(--paper)}
 #rev-note{flex:none;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:6px 16px 6px 24px;border-bottom:1px solid var(--warn);background:var(--warn-soft);color:var(--warn);font:12px var(--mono)}
 #rev-note[hidden],#rev-panel[hidden],#rev-tab[hidden]{display:none}
 #rev-tab{transition:background-color .12s,color .12s,transform .12s}
@@ -160,9 +161,12 @@ function row(entry) {
   tr.dataset.testid = "revision-row";
   tr.dataset.artifactId = entry.id;
   tr.dataset.version = entry.version ?? "current";
-  if (entry.id === id && viewing === entry.version) tr.className = "is-open";
+  if (entry.id === id && viewing === entry.version) {
+    tr.className = "is-open";
+    tr.setAttribute("aria-current", "page");
+  }
   if (entry.id !== id) tr.classList.add("is-other");
-  const name = (entry.title || entry.id) + (entry.version === null ? " — текущий" : "");
+  const name = entry.title || entry.id;
   for (const text of [numberOf(entry), name, stamp(entry.at)]) tr.append(Object.assign(document.createElement("td"), { textContent: text }));
   const open = () => openEntry(entry);
   tr.addEventListener("click", open);

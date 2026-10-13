@@ -252,10 +252,10 @@ const HISTORY_SCRIPT = `<script>
     row.dataset.version = entry.version ?? "current";
     row.style.setProperty("--i", Math.min(index, 12));
     row.classList.toggle("is-open", entry.open);
+    if (entry.open) row.setAttribute("aria-current", "page");
     row.classList.toggle("is-other", !entry.own);
     const parts = [["history-number", entry.number], ["history-title", entry.title], ["history-date", stamp(entry.at)]];
     for (const [className, text] of parts) row.append(Object.assign(document.createElement("span"), { className, textContent: text }));
-    if (entry.current) row.querySelector(".history-title").append(Object.assign(document.createElement("span"), { className: "history-tag", textContent: "текущий" }));
     row.addEventListener("click", () => {
       setOpen(false);
       tell({ type: "agent-ui:history-open", id: entry.id, version: entry.version });

@@ -256,12 +256,13 @@ ul.w-list { list-style: square; }
 .history-row { width: 100%; display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; gap: 10px; align-items: baseline; padding: 8px 12px; border: 0; border-bottom: 1px solid var(--s-line); background: transparent; color: var(--s-ink); font: inherit; font-size: 13px; text-align: left; cursor: pointer; transition: background-color .12s, box-shadow .12s; }
 .history-menu:not([hidden]) .history-row { animation: history-row-in .22s ease-out backwards; animation-delay: calc(var(--i, 0) * 22ms + 80ms); }
 .history-row:hover, .history-row:focus-visible { background: var(--s-stripe); box-shadow: inset 3px 0 var(--s-muted); outline: 0; }
-.history-row.is-open { background: var(--s-stripe); box-shadow: inset 3px 0 var(--s-ink); }
+.history-row.is-open, .history-row.is-open:hover, .history-row.is-open:focus-visible { background: var(--s-ink); color: var(--s-paper); box-shadow: none; }
+.history-row.is-open .history-number, .history-row.is-open .history-date, .history-row.is-open .history-title { color: var(--s-paper); }
+.history-row.is-open .history-number { border-right-color: color-mix(in srgb, var(--s-paper) 40%, transparent); }
 .history-row.is-other .history-title { color: var(--s-muted); }
 .history-number, .history-date { font: 11px var(--s-mono); color: var(--s-muted); }
 .history-number { border-right: 1px solid var(--s-line); }
 .history-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.history-tag { margin-left: 6px; padding: 0 4px; border: 1px solid currentColor; font: 10px var(--s-mono); text-transform: uppercase; letter-spacing: .06em; }
 .history-all { width: 100%; padding: 8px 12px; border: 0; background: var(--s-sheet); color: var(--s-muted); font: 11px var(--s-mono); text-align: right; cursor: pointer; transition: color .12s, background-color .12s; }
 .history-all:hover, .history-all:focus-visible { color: var(--s-ink); background: var(--s-stripe); outline: 0; }
 .stamp-history-heading[data-kind="branch"] { font-size: 16px; line-height: 1.75; font-family: var(--s-mono); }
