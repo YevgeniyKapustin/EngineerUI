@@ -9,7 +9,7 @@
 ## Установка
 
 ```bash
-git clone https://github.com/<owner>/engineer-ui.git
+git clone https://github.com/YevgeniyKapustin/engineer-ui.git
 cd engineer-ui
 npm run rules:install
 ```
