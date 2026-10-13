@@ -1,0 +1,16 @@
+{
+  "name": "engeneer-ui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "start": "node src/main.mjs",
+    "demo": "node scripts/demo.mjs",
+    "publish-page": "node scripts/publish.mjs",
+    "rules:install": "node scripts/install.mjs install",
+    "rules:uninstall": "node scripts/install.mjs uninstall",
+    "rules:status": "node scripts/install.mjs status",
+    "test": "node --test src/*.test.mjs"
+  }
+}

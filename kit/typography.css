@@ -1,0 +1,120 @@
+/*
+ * Текстовые стили v6/*: data-v6-text="<стиль>" на текстовом узле или те же переменные
+ * в CSS компонента. Inter Display — ось opsz шрифта Inter на 32; шорткат font сбрасывает
+ * font-variation-settings, поэтому ось задают после него.
+ */
+[data-kit="v6"] [data-v6-text="display-l"] {
+  font: var(--text-v6-display-l);
+  font-variation-settings: var(--opsz-v6-display);
+  letter-spacing: var(--text-v6-display-l--letter-spacing);
+}
+[data-kit="v6"] [data-v6-text="display"] {
+  font: var(--text-v6-display);
+  font-variation-settings: var(--opsz-v6-display);
+  letter-spacing: var(--text-v6-display--letter-spacing);
+}
+[data-kit="v6"] [data-v6-text="title-l"] {
+  font: var(--text-v6-title-l);
+  font-variation-settings: var(--opsz-v6-display);
+  letter-spacing: var(--text-v6-title-l--letter-spacing);
+}
+[data-kit="v6"] [data-v6-text="title"] {
+  font: var(--text-v6-title);
+  font-variation-settings: var(--opsz-v6-display);
+  letter-spacing: var(--text-v6-title--letter-spacing);
+}
+[data-kit="v6"] [data-v6-text="title-s"] {
+  font: var(--text-v6-title-s);
+  font-variation-settings: var(--opsz-v6-display);
+  letter-spacing: var(--text-v6-title-s--letter-spacing);
+}
+[data-kit="v6"] [data-v6-text="button"] {
+  font: var(--text-v6-button);
+  font-variation-settings: var(--opsz-v6-display);
+  letter-spacing: var(--text-v6-button--letter-spacing);
+}
+[data-kit="v6"] [data-v6-text="button-s"] {
+  font: var(--text-v6-button-s);
+  font-variation-settings: var(--opsz-v6-text);
+  letter-spacing: var(--text-v6-button-s--letter-spacing);
+}
+[data-kit="v6"] [data-v6-text="heading"] {
+  font: var(--text-v6-heading);
+  font-variation-settings: var(--opsz-v6-display);
+  letter-spacing: var(--text-v6-heading--letter-spacing);
+}
+[data-kit="v6"] [data-v6-text="section"] {
+  font: var(--text-v6-section);
+  font-variation-settings: var(--opsz-v6-display);
+  letter-spacing: var(--text-v6-section--letter-spacing);
+}
+[data-kit="v6"] [data-v6-text="body-xl"] {
+  font: var(--text-v6-body-xl);
+  font-variation-settings: var(--opsz-v6-text);
+  letter-spacing: var(--text-v6-body-xl--letter-spacing);
+}
+[data-kit="v6"] [data-v6-text="body-l"] {
+  font: var(--text-v6-body-l);
+  font-variation-settings: var(--opsz-v6-text);
+  letter-spacing: var(--text-v6-body-l--letter-spacing);
+}
+[data-kit="v6"] [data-v6-text="body"] {
+  font: var(--text-v6-body);
+  font-variation-settings: var(--opsz-v6-text);
+  letter-spacing: var(--text-v6-body--letter-spacing);
+}
+[data-kit="v6"] [data-v6-text="body-s"] {
+  font: var(--text-v6-body-s);
+  font-variation-settings: var(--opsz-v6-text);
+  letter-spacing: var(--text-v6-body-s--letter-spacing);
+}
+[data-kit="v6"] [data-v6-text="label-xl"] {
+  font: var(--text-v6-label-xl);
+  font-variation-settings: var(--opsz-v6-text);
+  letter-spacing: var(--text-v6-label-xl--letter-spacing);
+}
+[data-kit="v6"] [data-v6-text="label-l"] {
+  font: var(--text-v6-label-l);
+  font-variation-settings: var(--opsz-v6-text);
+  letter-spacing: var(--text-v6-label-l--letter-spacing);
+}
+[data-kit="v6"] [data-v6-text="label"] {
+  font: var(--text-v6-label);
+  font-variation-settings: var(--opsz-v6-text);
+  letter-spacing: var(--text-v6-label--letter-spacing);
+}
+[data-kit="v6"] [data-v6-text="caption-regular"] {
+  font: var(--text-v6-caption-regular);
+  font-variation-settings: var(--opsz-v6-text);
+  letter-spacing: var(--text-v6-caption-regular--letter-spacing);
+}
+[data-kit="v6"] [data-v6-text="caption"] {
+  font: var(--text-v6-caption);
+  font-variation-settings: var(--opsz-v6-text);
+  letter-spacing: var(--text-v6-caption--letter-spacing);
+}
+[data-kit="v6"] [data-v6-text="mono-code"] {
+  font: var(--text-v6-mono-code);
+  font-variation-settings: var(--opsz-v6-text);
+  letter-spacing: var(--text-v6-mono-code--letter-spacing);
+}
+[data-kit="v6"] [data-v6-text="mono-l"] {
+  font: var(--text-v6-mono-l);
+  font-variation-settings: var(--opsz-v6-text);
+  letter-spacing: var(--text-v6-mono-l--letter-spacing);
+}
+[data-kit="v6"] [data-v6-text="mono"] {
+  font: var(--text-v6-mono);
+  font-variation-settings: var(--opsz-v6-text);
+  letter-spacing: var(--text-v6-mono--letter-spacing);
+}
+[data-kit="v6"] [data-v6-text="mono-regular"] {
+  font: var(--text-v6-mono-regular);
+  font-variation-settings: var(--opsz-v6-text);
+  letter-spacing: var(--text-v6-mono-regular--letter-spacing);
+}
+[data-kit="v6"] [data-v6-text="mono-s"] {
+  font: var(--text-v6-mono-s);
+  font-variation-settings: var(--opsz-v6-text);
+  letter-spacing: var(--text-v6-mono-s--letter-spacing);
+}

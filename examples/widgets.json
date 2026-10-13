@@ -1,0 +1,282 @@
+{
+  "title": "ASD-STE100 — Simplified Technical English",
+  "summary": "Лист показывает все 14 виджетов. Каждая панель отвечает на один вопрос. Текст написан коротко: одна мысль в предложении, активный залог.",
+  "meta": [
+    ["Спецификация", "ASD-STE100, Issue 9"],
+    ["Владелец", "ASD Simplified Technical English Maintenance Group"],
+    ["Статус", "Пример виджетов"],
+    ["Лист", "1 / 1"]
+  ],
+  "panels": [
+    {
+      "title": "Ключевые показатели",
+      "caption": "stats — число, которое читают первым",
+      "span": 4,
+      "widgets": [
+        {
+          "kind": "stats",
+          "items": [
+            { "label": "Слов в словаре", "value": "≈ 900", "note": "одобренные слова" },
+            { "label": "Правил письма", "value": 53, "delta": "+0 к Issue 8", "tone": "neutral" },
+            { "label": "Средняя фраза", "value": 14, "unit": "слов", "delta": "−6 к лимиту", "tone": "good" },
+            { "label": "Нарушений в тексте", "value": 3, "delta": "+2 за неделю", "tone": "bad" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Структура документа",
+      "caption": "tree — из чего состоит целое",
+      "span": 2,
+      "widgets": [
+        {
+          "kind": "tree",
+          "root": {
+            "label": "ASD-STE100",
+            "note": "Спецификация",
+            "children": [
+              {
+                "label": "Часть 1",
+                "tag": "PART 1",
+                "note": "Правила письма",
+                "children": [
+                  { "label": "Слова", "tag": "1" },
+                  { "label": "Именные группы", "tag": "2" },
+                  { "label": "Глаголы", "tag": "3" },
+                  { "label": "Предложения", "tag": "4" }
+                ]
+              },
+              {
+                "label": "Часть 2",
+                "tag": "PART 2",
+                "note": "Словарь",
+                "children": [
+                  { "label": "Одобренные слова", "tag": "A" },
+                  { "label": "Неодобренные слова", "tag": "B", "children": [{ "label": "с заменой", "note": "даёт одобренный вариант" }] }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Разбор предложения",
+      "caption": "annotated — что не так в фразе",
+      "span": 2,
+      "widgets": [
+        {
+          "kind": "annotated",
+          "label": "Было",
+          "caption": "4 нарушения",
+          "parts": [
+            { "text": "Prior to", "note": "не одобрено → Before", "tone": "bad" },
+            "the",
+            { "text": "commencement", "note": "не одобрено → start", "tone": "bad" },
+            "of work,",
+            { "text": "it should be ensured", "note": "пассив → Make sure", "tone": "bad" },
+            "that the power",
+            { "text": "is disconnected", "note": "пассив", "tone": "warn" }
+          ]
+        },
+        {
+          "kind": "annotated",
+          "label": "Стало",
+          "caption": "одобрено",
+          "parts": [
+            { "text": "Before", "tone": "good" },
+            "you",
+            { "text": "start", "tone": "good" },
+            "the work,",
+            { "text": "disconnect", "note": "действие в повелительном", "tone": "good" },
+            "the power."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Формы глагола",
+      "caption": "table — сравнение по столбцам",
+      "span": 2,
+      "widgets": [
+        {
+          "kind": "table",
+          "columns": ["Форма", { "title": "Пример", "mono": true }, "Статус"],
+          "rows": [
+            ["Инфинитив", "to close", { "text": "Одобрено", "tone": "good" }],
+            ["Повелительное", "Close the valve.", { "text": "Одобрено", "tone": "good" }],
+            ["Простое настоящее", "The valve closes.", { "text": "Одобрено", "tone": "good" }],
+            ["Простое прошедшее", "The valve closed.", { "text": "Одобрено", "tone": "good" }],
+            ["Причастие прошедшего", "closed", { "text": "Только как прилагательное", "tone": "warn" }],
+            ["Будущее", "The valve will close.", { "text": "Одобрено", "tone": "good" }],
+            ["Перфект", "has closed", { "text": "Не одобрено", "tone": "bad" }],
+            ["Длительное", "is closing", { "text": "Не одобрено", "tone": "bad" }]
+          ],
+          "note": "Сложные формы заменяют простыми."
+        }
+      ]
+    },
+    {
+      "title": "Лимиты длины",
+      "caption": "gauge — значение против предела",
+      "span": 2,
+      "widgets": [
+        {
+          "kind": "gauge",
+          "items": [
+            { "label": "Процедурное предложение", "value": 14, "limit": 20, "max": 30, "unit": "слов" },
+            { "label": "Описательное предложение", "value": 29, "limit": 25, "max": 35, "unit": "слов", "note": "Предел превышен — разделите фразу." },
+            { "label": "Абзац", "value": 5, "limit": 6, "max": 10, "unit": "фраз" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Нарушения по правилам",
+      "caption": "bars — сравнение величин",
+      "span": 2,
+      "widgets": [
+        {
+          "kind": "bars",
+          "unit": "шт.",
+          "items": [
+            { "label": "Пассивный залог", "value": 12, "tone": "bad" },
+            { "label": "Длинная фраза", "value": 7, "tone": "warn" },
+            { "label": "Неодобренное слово", "value": 5, "tone": "warn" },
+            { "label": "Цепочка из 4+ существительных", "value": 2 }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Ход проверки",
+      "caption": "steps — где мы в процессе",
+      "span": 1,
+      "widgets": [
+        {
+          "kind": "steps",
+          "items": [
+            { "title": "Собрать текст", "status": "done" },
+            { "title": "Проверить словарь", "status": "done" },
+            { "title": "Проверить грамматику", "status": "active", "note": "3 из 8 разделов" },
+            { "title": "Сверить термины", "status": "failed", "note": "нет глоссария" },
+            { "title": "Перевод", "status": "skipped" },
+            { "title": "Выпуск", "status": "todo" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Параметры прогона",
+      "caption": "keyvalue — справка",
+      "span": 1,
+      "widgets": [
+        {
+          "kind": "keyvalue",
+          "items": [
+            ["Файл", "manual-ch3.md"],
+            ["Слов", "4 812"],
+            ["Фраз", "344"],
+            ["Время", "1,8 с"]
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Итог проверок",
+      "caption": "verdicts — прошло или нет, худшее первым",
+      "span": 2,
+      "widgets": [
+        {
+          "kind": "verdicts",
+          "items": [
+            { "title": "Словарь", "status": "pass", "evidence": "все слова из списка" },
+            { "title": "Длина фраз", "status": "fail", "evidence": "3 фразы длиннее 25 слов" },
+            { "title": "Термины", "status": "warn", "evidence": "нет глоссария" },
+            { "title": "Перевод", "status": "skip", "evidence": "не нужен для этого выпуска" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Как исправить длинные фразы",
+      "caption": "options — варианты с ценой и риском",
+      "span": 2,
+      "widgets": [
+        {
+          "kind": "options",
+          "items": [
+            { "title": "Разделить вручную", "what": "Автор делит три фразы на две.", "cost": "10 минут", "risk": "нет", "recommended": true },
+            { "title": "Поднять предел", "what": "Предел станет 30 слов.", "cost": "1 строка", "risk": "текст станет сложнее" },
+            { "title": "Отложить", "what": "Выпуск идёт без правки.", "risk": "читатель не поймёт раздел 3.4" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "История стандарта",
+      "caption": "timeline — события во времени",
+      "span": 4,
+      "widgets": [
+        {
+          "kind": "timeline",
+          "items": [
+            { "when": "1979", "title": "Старт работ", "note": "AECMA" },
+            { "when": "1986", "title": "Первый выпуск", "note": "AECMA SE" },
+            { "when": "2005", "title": "ASD-STE100", "note": "новое имя" },
+            { "when": "2021", "title": "Issue 8" },
+            { "when": "2025", "title": "Issue 9", "tone": "info" },
+            { "when": "Сейчас", "title": "Проверка текста", "tone": "good" }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Решение и риски",
+      "caption": "callout — вывод, который нельзя пропустить",
+      "span": 2,
+      "widgets": [
+        { "kind": "callout", "tone": "good", "title": "Вывод", "text": "Текст можно выпускать после правки трёх фраз." },
+        { "kind": "callout", "tone": "warn", "title": "Риск", "text": "Нет глоссария. Термины могут расходиться." },
+        { "kind": "callout", "tone": "bad", "title": "Блокер", "text": "Раздел 3.4 нарушает лимит в 25 слов." },
+        { "kind": "callout", "title": "Справка", "text": "Тон info ставится по умолчанию." }
+      ]
+    },
+    {
+      "title": "Что сделать",
+      "caption": "list и text — перечень и пояснение",
+      "span": 2,
+      "widgets": [
+        { "kind": "text", "text": "Порядок важен: сначала слова, затем грамматика." },
+        { "kind": "list", "ordered": true, "items": ["Замените неодобренные слова.", "Переведите пассив в актив.", "Разделите длинные фразы.", "Повторите проверку."] },
+        { "kind": "list", "items": ["Одно значение у слова.", "Одна мысль в предложении."] },
+        { "kind": "text", "muted": true, "text": "muted — для второстепенной подписи." }
+      ]
+    },
+    {
+      "title": "Правка в тексте",
+      "caption": "diff — что изменилось",
+      "span": 2,
+      "widgets": [
+        {
+          "kind": "diff",
+          "file": "manual-ch3.md",
+          "lines": [
+            "@@ -12,2 +12,2 @@",
+            " ## 3.4 Power",
+            "-Prior to the commencement of work, it should be ensured that the power is disconnected.",
+            "+Before you start the work, disconnect the power."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Команда",
+      "caption": "code — то, что копируют",
+      "span": 2,
+      "widgets": [
+        { "kind": "code", "label": "Опубликовать этот лист", "text": "node scripts/publish.mjs examples/widgets.json --id widgets" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,123 @@
+.v6-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--layout-sm);
+  gap: var(--space-2xs);
+  padding: 0 var(--space-md);
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--ink);
+  text-decoration: none;
+  white-space: nowrap;
+  text-decoration: none;
+  font: var(--text-v6-title);
+  font-variation-settings: var(--opsz-v6-display);
+  letter-spacing: var(--text-v6-title--letter-spacing);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Со стороны иконки отступ на 4 меньше: у глифа свои поля. */
+.v6-button[data-lead] {
+  padding-inline-start: var(--space-sm);
+}
+
+.v6-button[data-size="compact"] {
+  height: var(--layout-xs);
+  padding-inline: var(--space-sm);
+  font: var(--text-v6-button-s);
+  font-variation-settings: var(--opsz-v6-text);
+  letter-spacing: var(--text-v6-button-s--letter-spacing);
+}
+
+.v6-button[data-size="compact"][data-lead] {
+  padding-inline-start: var(--space-xs);
+}
+
+.v6-button[data-kind="primary"] {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.v6-button[data-kind="secondary"] {
+  background: var(--surface-muted);
+  color: var(--ink);
+}
+
+.v6-button[data-kind="outline"] {
+  border: var(--hair) solid var(--line-strong);
+  color: var(--ink);
+}
+
+.v6-button[data-kind="text"] {
+  color: var(--accent);
+}
+
+.v6-button[data-kind="danger"] {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.v6-button-label {
+  position: relative;
+}
+
+.v6-button-state,
+.v6-button-disabled {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.v6-button-state {
+  background: color-mix(in srgb, currentColor var(--state-hover), transparent);
+  opacity: 0;
+  transition: opacity var(--settle-state) var(--ease-state);
+}
+
+.v6-button:hover:not(:disabled) .v6-button-state {
+  opacity: 1;
+}
+
+.v6-button:active:not(:disabled) .v6-button-state {
+  background: color-mix(in srgb, currentColor var(--state-pressed), transparent);
+  opacity: 1;
+}
+
+.v6-button-disabled {
+  background: var(--canvas-a55);
+}
+
+.v6-button[data-busy] {
+  opacity: var(--opacity-dimmed);
+  cursor: progress;
+}
+
+.v6-button:disabled {
+  cursor: default;
+}
+
+@media (min-width: 960px) {
+  .v6-button {
+    height: var(--layout-2xs);
+    padding-inline: var(--space-sm);
+  }
+
+  .v6-button[data-lead] {
+    padding-inline-start: var(--space-xs);
+  }
+
+  .v6-button[data-size="compact"] {
+    height: 32px;
+    padding-inline: var(--space-xs);
+  }
+
+  .v6-button[data-size="compact"][data-lead] {
+    padding-inline-start: var(--space-2xs);
+  }
+}

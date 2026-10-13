@@ -1,0 +1,246 @@
+:root[data-kit="v6"],
+[data-kit="v6"] {
+  --canvas: #f7f7f9;
+  --bg-subtle: #eeeef1;
+  --bg-elevated: #fcfcfd;
+  --canvas-inverse: #1c1c1e;
+  --scrim: #110f0e66;
+  --surface: #ffffff;
+  --surface-elevated: #ffffff;
+  --surface-inverse: #2c2c2e;
+  --surface-sunken: #eeeef1;
+  --surface-pressed: #e6e6ea;
+  --surface-muted: #f7f7f9;
+  --surface-media: #0f0f10;
+  --surface-logo-circle: #cb4b09;
+  --ink: #1c1c1e;
+  --ink-secondary: #48484d;
+  --ink-muted: #6c6c72;
+  --ink-faint: #8e8e93;
+  --ink-inverse: #f7f7f9;
+  --ink-inverse-muted: #8e8e93;
+  --on-accent: #ffffff;
+  --on-media: #ffffff;
+  --line: #ebebef;
+  --border-subtle: #ebebef;
+  --line-strong: #a1a1a8;
+  --line-control: #8e8e93;
+  --accent: #151312;
+  --accent-hover: #2e2c2b;
+  --accent-pressed: #3f3d3b;
+  --accent-soft: #e5e2e1;
+  --accent-secondary: #6c6c72;
+  --accent-strong: #12100f;
+  --accent-on-inverse: #f1eeec;
+  --accent-on-inverse-hover: #e6e6ea;
+  --success: #00793b;
+  --success-soft: #d3f3da;
+  --warning: #7d6700;
+  --warning-soft: #f5ebc8;
+  --danger: #c52e45;
+  --danger-soft: #ffe6e6;
+  --danger-hover: #b01134;
+  --danger-pressed: #9c012b;
+  --info: #006bba;
+  --info-soft: #ddedff;
+  --avatar-mint: #007a35;
+  --avatar-mint-soft: #d4f3d9;
+  --avatar-sky: #00709d;
+  --avatar-sky-soft: #d6efff;
+  --avatar-sand: #905f00;
+  --avatar-sand-soft: #fee7ca;
+  --avatar-rose: #b63c62;
+  --avatar-rose-soft: #ffe5ea;
+  /* Постоянные цвета бренда и медиа: одинаковы в обеих темах, как --brand в tokens.css. */
+  --agent-mark: #f97316;
+  --brand-telegram-from: #2aabee;
+  --brand-telegram-to: #229ed9;
+  --shade-v6-ring: #14142012;
+  --shade-v6-key: #14142014;
+  --shade-v6-ambient: #14142017;
+  --shade-v6-deep: #14142021;
+  --shade-v6-highlight: #ffffff00;
+  --shade-v6-gloss: #ffffff38;
+  --shade-accent-near: #15131242;
+  --shade-accent-far: #15131229;
+  --shade-raised-near: #1e1c1b0f;
+  --shade-raised-far: #1e1c1b17;
+
+  --canvas-a0: color-mix(in srgb, var(--canvas) 0%, transparent);
+  --canvas-a20: color-mix(in srgb, var(--canvas) 20%, transparent);
+  --canvas-a55: color-mix(in srgb, var(--canvas) 55%, transparent);
+  --canvas-a88: color-mix(in srgb, var(--canvas) 88%, transparent);
+  --surface-elevated-a0: color-mix(in srgb, var(--surface-elevated) 0%, transparent);
+  --surface-elevated-a20: color-mix(in srgb, var(--surface-elevated) 20%, transparent);
+  --surface-elevated-a55: color-mix(in srgb, var(--surface-elevated) 55%, transparent);
+  --surface-elevated-a88: color-mix(in srgb, var(--surface-elevated) 88%, transparent);
+
+  --elevation-v6-1:
+    0 0 0 1px var(--shade-v6-ring), 0 1px 2px 0 var(--shade-v6-key),
+    0 3px 8px -2px var(--shade-v6-ambient), inset 0 1px 0 0 var(--shade-v6-highlight);
+  --elevation-v6-2:
+    0 0 0 1px var(--shade-v6-ring), 0 1px 3px 0 var(--shade-v6-key),
+    0 6px 16px -4px var(--shade-v6-ambient), 0 16px 36px -10px var(--shade-v6-deep),
+    inset 0 1px 0 0 var(--shade-v6-highlight);
+  --elevation-v6-accent:
+    0 2px 6px -1px var(--shade-accent-near), 0 10px 24px -6px var(--shade-accent-far),
+    inset 0 1px 0 0 var(--shade-v6-gloss);
+  --highlight-v6-inner: inset 0 1px 0 0 var(--shade-v6-highlight);
+
+  --radius-xs: 2px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 14px;
+  --radius-2xl: 16px;
+  --radius-3xl: 20px;
+  --radius-4xl: 24px;
+  --radius-5xl: 28px;
+  --radius-full: 999px;
+
+  --hair: 1px;
+  --border-control: 1.5px;
+  --border-strong: 2px;
+
+  --space-4xs: 2px;
+  --space-3xs: 4px;
+  --space-2xs: 8px;
+  --space-xs: 12px;
+  --space-sm: 16px;
+  --space-md: 20px;
+  --space-lg: 24px;
+  --space-xl: 28px;
+  --space-2xl: 32px;
+
+  --layout-3xs: 36px;
+  --layout-2xs: 40px;
+  --layout-xs: 44px;
+  --layout-sm: 48px;
+  --layout-md: 52px;
+  --layout-lg: 56px;
+  --layout-xl: 64px;
+  --layout-2xl: 72px;
+  --layout-3xl: 80px;
+  --layout-section-y: 80px;
+  --layout-4xl: 88px;
+  --layout-5xl: 96px;
+  --layout-7xl: 120px;
+  --layout-9xl: 160px;
+  --layout-10xl: 320px;
+
+  --icon-12: 12px;
+  --icon-16: 16px;
+  --icon-20: 20px;
+  --icon-24: 24px;
+  --icon-32: 32px;
+  --icon-48: 48px;
+  --icon-stroke: 1.4px;
+  --icon-stroke-bold: 2px;
+
+  --opacity-disabled: 0.4;
+  --opacity-dimmed: 0.6;
+  --state-hover: 8%;
+  --state-pressed: 14%;
+  --state-row-hover: 6%;
+  --state-row-pressed: 10%;
+  --settle-state: 120ms;
+  --ease-state: ease-out;
+
+  --font-v6-text: "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-v6-mono: "Geist Mono Variable", "Geist Mono", ui-monospace, monospace;
+  --opsz-v6-text: "opsz" 14;
+  --opsz-v6-display: "opsz" 32;
+
+  --text-v6-display-l: 500 36px / 42px var(--font-v6-text);
+  --text-v6-display-l--letter-spacing: -0.72px;
+  --text-v6-display: 500 26px / 32px var(--font-v6-text);
+  --text-v6-display--letter-spacing: -0.39px;
+  --text-v6-title-l: 500 18px / 23px var(--font-v6-text);
+  --text-v6-title-l--letter-spacing: -0.18px;
+  --text-v6-title: 500 16px / 23px var(--font-v6-text);
+  --text-v6-title--letter-spacing: -0.16px;
+  --text-v6-title-s: 500 15px / 21px var(--font-v6-text);
+  --text-v6-title-s--letter-spacing: 0px;
+  --text-v6-button: 500 15px / 21px var(--font-v6-text);
+  --text-v6-button--letter-spacing: 0px;
+  --text-v6-button-s: 400 14px / 20px var(--font-v6-text);
+  --text-v6-button-s--letter-spacing: 0px;
+  --text-v6-heading: 500 13px / 19px var(--font-v6-text);
+  --text-v6-heading--letter-spacing: 0px;
+  --text-v6-section: 500 12px / 18px var(--font-v6-text);
+  --text-v6-section--letter-spacing: 0.06px;
+  --text-v6-body-xl: 400 15px / 23px var(--font-v6-text);
+  --text-v6-body-xl--letter-spacing: 0px;
+  --text-v6-body-l: 400 14px / 19px var(--font-v6-text);
+  --text-v6-body-l--letter-spacing: 0px;
+  --text-v6-body: 400 14px / 19px var(--font-v6-text);
+  --text-v6-body--letter-spacing: 0px;
+  --text-v6-body-s: 400 13px / 19px var(--font-v6-text);
+  --text-v6-body-s--letter-spacing: 0px;
+  --text-v6-label-xl: 500 14px / 19px var(--font-v6-text);
+  --text-v6-label-xl--letter-spacing: 0px;
+  --text-v6-label-l: 500 13px / 19px var(--font-v6-text);
+  --text-v6-label-l--letter-spacing: 0px;
+  --text-v6-label: 500 12px / 17px var(--font-v6-text);
+  --text-v6-label--letter-spacing: 0px;
+  --text-v6-caption-regular: 400 12px / 17px var(--font-v6-text);
+  --text-v6-caption-regular--letter-spacing: 0.06px;
+  --text-v6-caption: 500 11px / 16px var(--font-v6-text);
+  --text-v6-caption--letter-spacing: 0.06px;
+  --text-v6-mono-code: 400 13px / 18px var(--font-v6-mono);
+  --text-v6-mono-code--letter-spacing: 0px;
+  --text-v6-mono-l: 400 13px / 18px var(--font-v6-mono);
+  --text-v6-mono-l--letter-spacing: 0px;
+  --text-v6-mono: 500 11px / 16px var(--font-v6-mono);
+  --text-v6-mono--letter-spacing: 0px;
+  --text-v6-mono-regular: 400 11px / 16px var(--font-v6-mono);
+  --text-v6-mono-regular--letter-spacing: 0px;
+  --text-v6-mono-s: 500 10px / 15px var(--font-v6-mono);
+  --text-v6-mono-s--letter-spacing: 0px;
+  --text-v6-avatar-16: 500 7px / 16px var(--font-v6-text);
+  --text-v6-avatar-16--letter-spacing: 0px;
+
+  /* Значения отдельных компонентов, которых нет в коллекциях переменных Figma. */
+  --space-14: 14px;
+  --radius-control: 4px;
+  --radius-drop-notice: 18px;
+  --max-width-drop-notice: 480px;
+  --max-width-attachment: 240px;
+  --max-width-banner: 480px;
+  --width-drawer: 280px;
+  --min-height-composer-input: 43px;
+  --width-menu-anchor: 345px;
+  --width-menu-anchor-wide: 360px;
+  --max-height-composer-input: 136px;
+  --opacity-field-disabled: 0.45;
+  --opacity-skeleton-faded: 0.45;
+  --opacity-drop-notice-close: 0.72;
+  --duration-skeleton-pulse: 1.2s;
+  --size-room-row-skeleton-line-first: 166px;
+  --size-room-row-skeleton-line-second: 241px;
+  --settle-drag-ghost: 180ms;
+  --elevation-drag-ghost: 0 16px 40px 0 #0000002e, 0 2px 8px 0 #00000014;
+  --elevation-drop-notice: 0 16px 40px 0 #0000002e;
+
+  color: var(--ink);
+  font: var(--text-v6-body);
+  font-variation-settings: var(--opsz-v6-text);
+  letter-spacing: var(--text-v6-body--letter-spacing);
+}
+
+@media (min-width: 960px) {
+  :root[data-kit="v6"],
+  [data-kit="v6"] {
+    --text-v6-title: 500 18px / 23px var(--font-v6-text);
+    --text-v6-title--letter-spacing: -0.18px;
+    --text-v6-body-xl: 400 17px / 25px var(--font-v6-text);
+    --text-v6-body-l: 400 16px / 21px var(--font-v6-text);
+    --text-v6-body: 400 15px / 21px var(--font-v6-text);
+    --text-v6-body-s: 400 15px / 21px var(--font-v6-text);
+    --text-v6-label-l: 500 15px / 21px var(--font-v6-text);
+    --text-v6-label: 500 14px / 19px var(--font-v6-text);
+    --text-v6-caption: 500 12px / 17px var(--font-v6-text);
+    --text-v6-mono-regular: 400 13px / 18px var(--font-v6-mono);
+    --text-v6-mono-s: 500 11px / 16px var(--font-v6-mono);
+  }
+}

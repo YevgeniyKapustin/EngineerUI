@@ -1,0 +1,114 @@
+.v6-text-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  min-width: 0;
+}
+
+.v6-text-field[data-disabled] {
+  opacity: var(--opacity-field-disabled);
+}
+
+.v6-text-field-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3xs);
+  min-width: 0;
+}
+
+.v6-text-field-label {
+  color: var(--ink);
+  font: var(--text-v6-label-xl);
+  font-variation-settings: var(--opsz-v6-text);
+  letter-spacing: var(--text-v6-label-xl--letter-spacing);
+}
+
+.v6-text-field-box {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  min-height: var(--layout-sm);
+  box-sizing: border-box;
+  padding: 0 var(--space-xs);
+  overflow: hidden;
+  border: var(--hair) solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--ink-muted);
+}
+
+.v6-text-field[data-lines="multi"] .v6-text-field-box {
+  align-items: flex-start;
+  min-height: 120px;
+  padding: var(--space-xs);
+}
+
+.v6-text-field-box:focus-within {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 var(--hair) var(--accent);
+}
+
+.v6-text-field[data-error] .v6-text-field-box {
+  border-color: var(--danger);
+  box-shadow: inset 0 0 0 var(--hair) var(--danger);
+}
+
+.v6-text-field-control {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  caret-color: var(--accent);
+  text-overflow: ellipsis;
+  font: var(--text-v6-body-xl);
+  font-variation-settings: var(--opsz-v6-text);
+  letter-spacing: var(--text-v6-body-xl--letter-spacing);
+}
+
+.v6-text-field-control::placeholder {
+  color: var(--ink-muted);
+  opacity: 1;
+}
+
+.v6-text-field-control:focus-visible {
+  outline: 0;
+}
+
+.v6-text-field-control:autofill {
+  color: var(--ink);
+}
+
+.v6-text-field-control:-webkit-autofill {
+  -webkit-text-fill-color: var(--ink);
+  -webkit-box-shadow: 0 0 0 1000px var(--surface) inset;
+}
+
+textarea.v6-text-field-control {
+  min-height: calc(120px - var(--space-xs) * 2);
+  overflow: hidden;
+  resize: none;
+}
+
+.v6-text-field-control:disabled {
+  cursor: default;
+}
+
+@media (max-width: 959px) {
+  .v6-text-field-control {
+    font-size: 16px;
+  }
+}
+
+.v6-text-field-note {
+  color: var(--ink-muted);
+  font: var(--text-v6-caption-regular);
+  font-variation-settings: var(--opsz-v6-text);
+  letter-spacing: var(--text-v6-caption-regular--letter-spacing);
+}
+
+.v6-text-field[data-error] .v6-text-field-note {
+  color: var(--danger);
+}

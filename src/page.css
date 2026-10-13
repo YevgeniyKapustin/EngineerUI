@@ -1,0 +1,94 @@
+.screens { display: flex; flex-direction: column; gap: 40px; }
+.screens:empty { display: none; }
+
+.ask-idle[hidden] { display: none; }
+.ask-idle { margin-bottom: 0; animation: ask-in .3s cubic-bezier(.2, .7, .2, 1) both; }
+
+.stamp:has(> .ask-cell) { grid-template-columns: minmax(0, 1fr) 240px; }
+.ask-cell { display: flex; flex-direction: column; justify-content: center; gap: 4px; padding: 14px 18px; border-left: 1.5px solid var(--s-frame); }
+.ask-cell-value { display: flex; align-items: center; gap: 10px; font: 600 15px var(--s-mono); }
+.ask-cell-note { font: 11px var(--s-mono); color: var(--s-muted); }
+.ask-pulse { width: 9px; height: 9px; background: var(--s-info); flex: none; animation: ask-pulse 1.6s ease-in-out infinite; }
+.ask[data-sent="on"] .ask-pulse, .ask-idle[data-sent="on"] .ask-pulse { background: var(--s-good); }
+.ask-lead { white-space: pre-wrap; }
+
+.ask { animation: ask-in .3s cubic-bezier(.2, .7, .2, 1) both; }
+.ask .stamp { margin-bottom: 24px; }
+.ask-panel { animation: ask-in .3s cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(60ms + var(--i, 0) * 50ms); }
+.ask-text { white-space: pre-wrap; line-height: 1.6; }
+
+.ask-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); border-top: 1px solid var(--s-line); border-left: 1px solid var(--s-line); }
+.ask-option {
+  display: grid; grid-template-columns: 30px 1fr 18px; align-items: center; gap: 10px;
+  padding: 12px 14px; border: 0; border-right: 1px solid var(--s-line); border-bottom: 1px solid var(--s-line);
+  background: var(--s-paper); color: var(--s-ink); font: inherit; text-align: left; cursor: pointer;
+  transition: background .15s, color .15s, box-shadow .15s;
+}
+.ask-option:hover { background: var(--s-stripe); box-shadow: inset 3px 0 var(--s-ink); }
+.ask-option:focus-visible { outline: 2px solid var(--s-info); outline-offset: -2px; }
+.ask-option-index { font: 11px var(--s-mono); color: var(--s-muted); }
+.ask-option-label { min-width: 0; overflow-wrap: anywhere; }
+.ask-option-mark { position: relative; width: 16px; height: 16px; border: 1.5px solid currentColor; transition: transform .15s; }
+.ask-option[data-multi="off"] .ask-option-mark { border-radius: 50%; }
+.ask-option-mark::after {
+  content: ""; position: absolute; left: 4px; top: 0; width: 4px; height: 9px;
+  border: solid currentColor; border-width: 0 2px 2px 0; transform: rotate(45deg) scale(0); transition: transform .15s cubic-bezier(.2, .7, .2, 1.4);
+}
+.ask-option[data-selected="on"] { background: var(--s-ink); color: var(--s-paper); box-shadow: none; }
+.ask-option[data-selected="on"] .ask-option-index { color: inherit; opacity: .7; }
+.ask-option[data-selected="on"] .ask-option-mark::after { transform: rotate(45deg) scale(1); }
+
+.ask-field {
+  width: 100%; padding: 10px 12px; border: 1.5px solid var(--s-frame); border-radius: 0;
+  background: var(--s-paper); color: var(--s-ink); font: 14px/1.5 var(--s-mono); resize: vertical;
+  transition: box-shadow .15s;
+}
+.ask-field:focus { outline: none; box-shadow: 4px 4px 0 var(--s-line); }
+
+.ask-checks { display: flex; flex-direction: column; border-top: 1px solid var(--s-line); }
+.ask-check { display: flex; align-items: center; gap: 12px; padding: 9px 4px; border-bottom: 1px solid var(--s-line); cursor: pointer; transition: background .15s; }
+.ask-check:hover { background: var(--s-stripe); }
+.ask-check input {
+  appearance: none; flex: none; width: 16px; height: 16px; margin: 0; border: 1.5px solid var(--s-ink);
+  display: grid; place-content: center; background: var(--s-paper); cursor: pointer; transition: background .15s;
+}
+.ask-check input::after { content: ""; width: 4px; height: 8px; margin-top: -2px; border: solid var(--s-paper); border-width: 0 2px 2px 0; transform: rotate(45deg) scale(0); transition: transform .15s; }
+.ask-check input:checked { background: var(--s-ink); }
+.ask-check input:checked::after { transform: rotate(45deg) scale(1); }
+.ask-check input:focus-visible { outline: 2px solid var(--s-info); outline-offset: 2px; }
+.ask-check:has(input:checked) span { text-decoration: line-through; color: var(--s-muted); }
+
+.ask-actions {
+  display: flex; align-items: stretch; justify-content: space-between; margin-top: 24px;
+  border: 1.5px solid var(--s-frame); background: var(--s-paper);
+}
+.screen-status { display: flex; align-items: center; padding: 0 18px; font: 12px var(--s-mono); color: var(--s-muted); }
+.screen-status[data-tone="good"] { color: var(--s-good); }
+.screen-status[data-tone="bad"] { color: var(--s-bad); }
+.ask-submit {
+  display: flex; align-items: center; gap: 14px; padding: 14px 22px; border: 0; border-left: 1.5px solid var(--s-frame);
+  background: var(--s-ink); color: var(--s-paper); font: 600 15px var(--font-v6-text, inherit); cursor: pointer; transition: background .15s, color .15s;
+}
+.ask-submit-arrow { font-family: var(--s-mono); transition: transform .2s cubic-bezier(.2, .7, .2, 1); }
+.ask-submit:hover:not(:disabled) .ask-submit-arrow { transform: translateX(5px); }
+.ask-submit:focus-visible { outline: 2px solid var(--s-info); outline-offset: 2px; }
+.ask-submit:disabled { background: var(--s-stripe); color: var(--s-muted); cursor: default; }
+
+.ask-link:empty { display: none; }
+.ask-link { margin-top: 16px; padding: 10px 14px; border: 1.5px solid var(--s-warn); background: var(--s-warn-soft); color: var(--s-warn); font: 12px var(--s-mono); }
+
+@keyframes ask-in { from { opacity: 0; transform: translateY(8px); } }
+@keyframes ask-pulse { 50% { opacity: .25; } }
+
+@media (max-width: 640px) {
+  .stamp:has(> .ask-cell) { grid-template-columns: 1fr; }
+  .ask-cell { border-left: 0; border-top: 1.5px solid var(--s-frame); }
+  .ask-actions { flex-direction: column; }
+  .screen-status { padding: 10px 14px; }
+  .ask-submit { border-left: 0; border-top: 1.5px solid var(--s-frame); justify-content: space-between; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ask, .ask-idle, .ask-panel, .ask-pulse { animation: none; }
+  .ask-option, .ask-option-mark::after, .ask-check input::after, .ask-submit-arrow { transition: none; }
+}

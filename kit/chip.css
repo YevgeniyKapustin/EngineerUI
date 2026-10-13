@@ -1,0 +1,68 @@
+.v6-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--layout-3xs);
+  gap: 6px;
+  padding: 0 14px;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--surface-sunken);
+  color: var(--ink-secondary);
+  white-space: nowrap;
+  font: var(--text-v6-label-l);
+  font-variation-settings: var(--opsz-v6-text);
+  letter-spacing: var(--text-v6-label-l--letter-spacing);
+  cursor: pointer;
+}
+
+.v6-chip[data-kind="plain"][data-selected="on"] {
+  background: var(--accent);
+  color: var(--ink-inverse);
+}
+
+.v6-chip[data-kind="filter"] {
+  height: var(--layout-xs);
+  font: var(--text-v6-body-s);
+  font-variation-settings: var(--opsz-v6-text);
+  letter-spacing: var(--text-v6-body-s--letter-spacing);
+}
+
+.v6-chip[data-kind="filter"][data-selected="on"] {
+  background: var(--surface-inverse);
+  color: var(--ink-inverse);
+}
+
+.v6-chip[data-kind="filter"][data-selected="off"] {
+  border: var(--hair) solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.v6-chip-check,
+.v6-chip-label {
+  position: relative;
+}
+
+.v6-chip-state {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: color-mix(in srgb, currentColor var(--state-hover), transparent);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--settle-state) var(--ease-state);
+}
+
+@media (hover: hover) {
+  .v6-chip:hover:enabled .v6-chip-state {
+    opacity: 1;
+  }
+}
+
+.v6-chip:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: default;
+}
