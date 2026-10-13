@@ -21,7 +21,20 @@ function placeOf(given) {
   const fields = given && typeof given === "object" ? [given.worktree, given.branch ?? ""] : [];
   if (fields.length !== 2 || fields.some((field) => typeof field !== "string" || field.length > PLACE_LIMIT))
     throw new ArtifactError(400, "place — объект {worktree, branch} из строк до 400 знаков");
-  return { worktree: given.worktree, branch: given.branch ?? "" };
+  const agent = agentOf(given.agent);
+  return { worktree: given.worktree, branch: given.branch ?? "", ...(agent && { agent }) };
+}
+
+function agentOf(given) {
+  if (given === undefined) return undefined;
+  const valid =
+    given?.kind === "claude" &&
+    /^[A-Za-z0-9-]{1,100}$/.test(given.session ?? "") &&
+    typeof given.command === "string" &&
+    given.command.length <= PLACE_LIMIT &&
+    /(^|[\\/])claude(\.exe)?$/i.test(given.command);
+  if (!valid) throw new ArtifactError(400, "place.agent — объект {kind: claude, session, command} с путём до claude");
+  return { kind: given.kind, session: given.session, command: given.command };
 }
 
 function readPlace(path) {

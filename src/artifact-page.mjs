@@ -64,7 +64,7 @@ iframe{display:block;border:0;width:100%;flex:1;background:var(--paper)}
 #rev-back:hover{background:color-mix(in srgb,currentColor 12%,transparent)}
 `;
 
-export function shellOf({ id, title }) {
+export function shellOf({ id, title }, { token }) {
   const nonce = randomBytes(16).toString("base64");
   const raw = `/a/${id}/raw`;
   return `<!doctype html>
@@ -86,6 +86,7 @@ ${FAVICON_LINK}
 <script nonce="${nonce}">
 const id = "${id}";
 const raw = "${raw}";
+const token = "${token}";
 const frame = document.getElementById("frame");
 const tab = document.getElementById("rev-tab");
 const panel = document.getElementById("rev-panel");
@@ -120,6 +121,21 @@ function download() {
 function openEntry(entry) {
   if (entry.id === id) return show(entry.version);
   location.href = entry.version === null ? "/a/" + entry.id : "/a/" + entry.id + "/history/" + entry.version;
+}
+
+async function ask({ quote, question, context }) {
+  const reply = (result) => frame.contentWindow?.postMessage({ type: "agent-ui:explain-result", ...result }, "*");
+  try {
+    const response = await fetch("/a/" + id + "/questions", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ token, quote, question, context, version: viewing }),
+    });
+    const body = await response.json();
+    reply(response.ok ? { ok: true, status: body.status, id: body.id, listening: body.listening } : { ok: false, error: body.error });
+  } catch {
+    reply({ ok: false, error: "сервер agent-ui не ответил" });
+  }
 }
 
 function load(src) {
@@ -204,6 +220,7 @@ addEventListener("message", (event) => {
   if (event.data?.type === "agent-ui:history-toggle") toggle(event.data);
   if (event.data?.type === "agent-ui:history-all") location.href = "/a";
   if (event.data?.type === "agent-ui:download") download();
+  if (event.data?.type === "agent-ui:explain") ask(event.data);
   if (event.data?.type === "agent-ui:history-open") {
     const entry = entries.find((other) => other.id === event.data.id && other.version === event.data.version);
     if (entry) openEntry(entry);
@@ -216,6 +233,8 @@ events.addEventListener("version", async () => {
   await refresh();
   if (viewing === null) load(raw + "?v=" + Date.now());
 });
+events.addEventListener("answer", (event) =>
+  frame.contentWindow?.postMessage({ type: "agent-ui:explain-answer", ...JSON.parse(event.data) }, "*"));
 refresh();
 </script></body></html>`;
 }

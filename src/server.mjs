@@ -4,6 +4,9 @@ import { FRAME_SANDBOX, historyOf, listOf, shellOf } from "./artifact-page.mjs";
 import { FAVICON } from "./favicon.mjs";
 import { createArtifacts } from "./artifacts.mjs";
 import { createAsks } from "./asks.mjs";
+import { EXPLAIN_SCRIPT } from "./explain.mjs";
+import { createForks } from "./forks.mjs";
+import { createQuestions, questionOf } from "./questions.mjs";
 import { kitCss, pageOf } from "./page.mjs";
 import { parseScreen } from "./screen.mjs";
 import { parseSheet } from "./sheet.mjs";
@@ -77,14 +80,14 @@ function openStream(request, response, listeners, first) {
 }
 
 function patternOf(path) {
-  const match = /^\/(answer|a)\/([^/]+)(\/raw|\/events|\/history|\/download)?(?:\/([^/]+))?$/.exec(path);
+  const match = /^\/(answer|a)\/([^/]+)(\/raw|\/events|\/history|\/download|\/questions)?(?:\/([^/]+))?$/.exec(path);
   if (!match) return [path];
   const [, kind, id, tail = "", version] = match;
   if (version === undefined) return [`/${kind}/:id${tail}`, id];
   return tail === "/history" ? [`/${kind}/:id/history/:version`, id, version] : [path];
 }
 
-export function startServer({ port = 0, timeoutMs = 10 * 60_000, artifactsDir, log = () => {} }) {
+export function startServer({ port = 0, timeoutMs = 10 * 60_000, artifactsDir, log = () => {}, runFork }) {
   const token = randomBytes(24).toString("base64url");
   const viewers = new Set();
   const watchers = new Map();
@@ -106,7 +109,8 @@ export function startServer({ port = 0, timeoutMs = 10 * 60_000, artifactsDir, l
     for (const viewer of viewers) viewer.write(frame);
   };
   const asks = createAsks({ timeoutMs, log, onChange: broadcast });
-
+  const questions = createQuestions({ log });
+  const forks = createForks({ log, ...(runFork && { run: runFork }) });
   function checkHost(request) {
     if (request.headers.host !== new URL(origin).host)
       throw new RequestError(403, "Чужой Host: сервер отвечает только на свой адрес");
@@ -135,8 +139,12 @@ export function startServer({ port = 0, timeoutMs = 10 * 60_000, artifactsDir, l
       .sort((a, b) => b.at - a.at);
   }
 
+  const withExplain = (html) => {
+    const end = html.toLowerCase().lastIndexOf("</body>");
+    return end < 0 ? html + EXPLAIN_SCRIPT : html.slice(0, end) + EXPLAIN_SCRIPT + html.slice(end);
+  };
   const pageHtml = ({ kind, text }) =>
-    kind === "sheet" ? renderSheet(storedText(() => parseSheet(JSON.parse(text))), { origin, history: true }) : text;
+    withExplain(kind === "sheet" ? renderSheet(storedText(() => parseSheet(JSON.parse(text))), { origin, history: true }) : text);
 
   const routes = {
     "GET /": (request, response) => send(response, 200, pageOf({ token }), HTML),
@@ -193,7 +201,35 @@ export function startServer({ port = 0, timeoutMs = 10 * 60_000, artifactsDir, l
 
     "GET /a": (request, response) => send(response, 200, listOf(artifacts.list(), { origin }), HTML, INDEX),
 
-    "GET /a/:id": (request, response, id) => send(response, 200, shellOf(artifacts.describe(id)), HTML),
+    "GET /a/:id": (request, response, id) => {
+      const page = artifacts.describe(id);
+      log({ event: "page_open", id, referer: request.headers.referer ?? "" });
+      send(response, 200, shellOf(page, { token }), HTML);
+    },
+
+    "POST /a/:id/questions": async (request, response, id) => {
+      fromPage(request);
+      const { place } = artifacts.describe(id);
+      const body = await readJson(request);
+      if (!sameToken(body.token, token)) throw new RequestError(403, "Неверный ключ страницы");
+      const question = questionOf(id, body, body.version);
+      if (!forks.canFork(place)) return send(response, 200, { status: "queued", ...questions.put(question) });
+      if (forks.busy()) throw new RequestError(429, "Уже идут три форка: дождись ответа");
+      forks.ask(question, place).then((answer) => {
+        const frame = `event: answer\ndata: ${JSON.stringify({ id: question.id, ...answer })}\n\n`;
+        for (const watcher of watchersOf(id)) watcher.write(frame);
+      });
+      send(response, 200, { status: "forked", id: question.id });
+    },
+
+    "GET /questions": async (request, response) => {
+      fromAgent(request);
+      const query = new URL(request.url, origin).searchParams;
+      const page = query.get("id") ?? undefined;
+      const cancelled = query.has("wait") ? new Promise((resolve) => response.on("close", resolve)) : undefined;
+      const taken = await questions.take(page, cancelled);
+      if (!response.writableEnded && !response.destroyed) send(response, 200, { questions: taken });
+    },
 
     "GET /a/:id/raw": (request, response, id) => send(response, 200, pageHtml(artifacts.read(id)), HTML, SANDBOXED),
 

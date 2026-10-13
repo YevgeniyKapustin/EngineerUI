@@ -27,7 +27,12 @@ function git(...args) {
 
 function placeOf() {
   const worktree = git("rev-parse", "--show-toplevel");
-  return worktree ? { worktree, branch: git("branch", "--show-current") } : undefined;
+  return worktree ? { worktree, branch: git("branch", "--show-current"), ...agentOf() } : undefined;
+}
+
+function agentOf() {
+  const { CLAUDE_CODE_SESSION_ID: session, CLAUDE_CODE_EXECPATH: command } = process.env;
+  return session && command ? { agent: { kind: "claude", session, command } } : {};
 }
 
 await runCli("agent-ui-publish", "publish_failed", async () => {

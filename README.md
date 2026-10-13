@@ -42,6 +42,10 @@ node scripts/publish.mjs examples/widgets.json --id widgets
   `~/.agent-ui/server.log`, страницы — `~/.agent-ui/artifacts`.
 - `scripts/ask.mjs` открывает экран вопроса и ждёт ответа до 10 минут. В stdout
   приходит `{"status":"answered","answers":{...}}` или `{"status":"timeout"}`.
+- На любом листе человек выделяет фразу и жмёт «Спросить агента». Лист от
+  сессии Claude Code получает ответ форка этой сессии (`--fork-session`, только
+  Read, Grep и Glob) прямо в карточке. Вопрос к листу другого агента ложится в
+  очередь: её забирает `scripts/inbox.mjs --id <slug> --wait`.
 - Сервер слушает только 127.0.0.1. Страница открывается в iframe с `sandbox`:
   её скрипт не публикует страницы и не отвечает на вопросы.
 - Текст листа сервер проверяет по ASD-STE100: длинное предложение, пассив и

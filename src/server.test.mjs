@@ -116,7 +116,8 @@ test("агент публикует страницу и получает ссы�
   assert.doesNotMatch(shell.text, /allow-same-origin/);
 
   const raw = await call(`${url}/raw`);
-  assert.equal(raw.text, html);
+  assert.ok(raw.text.startsWith(html));
+  assert.match(raw.text, /agent-ui-explain/);
   assert.match(raw.headers["content-security-policy"], /^sandbox allow-scripts/);
   assert.doesNotMatch(raw.headers["content-security-policy"], /allow-same-origin/);
 
@@ -134,7 +135,7 @@ test("повторная публикация с тем же id обновляе
   const update = stream.next();
   await publish({ id: "plan", html: "<p>шаг 2</p>" });
   assert.ok(Number(await update) > 0);
-  assert.equal((await call(`${server.url}/a/plan/raw`)).text, "<p>шаг 2</p>");
+  assert.ok((await call(`${server.url}/a/plan/raw`)).text.startsWith("<p>шаг 2</p>"));
 });
 
 test("публикация из браузера, с плохим id и без html отклоняется", async (t) => {
@@ -211,4 +212,118 @@ test("без ответа агент получает timeout, и это вид�
   const { ask, logs } = await setup(t, { timeoutMs: 20 });
   assert.deepEqual(JSON.parse((await ask()).text), { status: "timeout" });
   assert.ok(logs.some((entry) => entry.event === "ask_timeout"));
+});
+
+test("человек спрашивает о фрагменте листа, агент, который ждёт, получает вопрос", async (t) => {
+  const { server, publish, token, logs } = await setup(t);
+  await publish({ id: "plan", html: "<p>шаг 1</p>" });
+  const ask = (body, headers = { origin: server.url }) =>
+    call(`${server.url}/a/plan/questions`, { method: "POST", headers: { "content-type": "application/json", ...headers }, body });
+
+  const waiting = call(`${server.url}/questions?id=plan&wait`);
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  const queued = await ask({ token, quote: "шаг 1", context: "План" });
+  assert.equal(queued.status, 200);
+  assert.equal(JSON.parse(queued.text).listening, 1);
+
+  const [question] = JSON.parse((await waiting).text).questions;
+  assert.equal(question.page, "plan");
+  assert.equal(question.quote, "шаг 1");
+  assert.equal(question.question, "Расскажи подробнее");
+  assert.equal(question.context, "План");
+  assert.deepEqual(JSON.parse((await call(`${server.url}/questions`)).text).questions, []);
+  assert.ok(logs.some((entry) => entry.event === "question_queued" && entry.listening === 1));
+});
+
+test("вопрос без ожидающего агента лежит в очереди до inbox", async (t) => {
+  const { server, publish, token } = await setup(t);
+  await publish({ id: "plan", html: "<p>шаг 1</p>" });
+  const body = { token, quote: "шаг 1", question: "Почему так?" };
+  const queued = await call(`${server.url}/a/plan/questions`, { method: "POST", headers: { "content-type": "application/json", origin: server.url }, body });
+  assert.equal(JSON.parse(queued.text).listening, 0);
+  assert.deepEqual(JSON.parse((await call(`${server.url}/questions?id=other`)).text).questions, []);
+  const [question] = JSON.parse((await call(`${server.url}/questions?id=plan`)).text).questions;
+  assert.equal(question.question, "Почему так?");
+});
+
+function answers(url) {
+  let wake = () => {};
+  const seen = [];
+  const req = request(url, (response) =>
+    response.on("data", (chunk) => {
+      for (const [, data] of String(chunk).matchAll(/event: answer\ndata: (.+)\n/g)) seen.push(JSON.parse(data));
+      wake();
+    }),
+  );
+  req.end();
+  return {
+    next: () => new Promise((resolve) => (wake = () => seen.length && resolve(seen.shift()))),
+    close: () => req.destroy(),
+  };
+}
+
+const AGENT_PLACE = {
+  worktree: "C:/work/tree",
+  branch: "main",
+  agent: { kind: "claude", session: "1ebe3f82-394b-4296-871c-cf7fabe6c559", command: "C:/bin/claude.exe" },
+};
+
+test("вопрос к листу сессии Claude уходит форку этой сессии, ответ приходит на страницу", async (t) => {
+  const runs = [];
+  const runFork = async (run) => {
+    runs.push(run);
+    return { text: "Потому что очередь живёт до перезапуска.", session: "fork-1", cost: 0.1 };
+  };
+  const { server, publish, token } = await setup(t, { runFork });
+  await publish({ id: "plan", html: "<p>шаг 1</p>", place: AGENT_PLACE });
+  const stream = answers(`${server.url}/a/plan/events`);
+  t.after(stream.close);
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  const answer = stream.next();
+
+  const body = { token, quote: "в памяти", question: "Почему?", context: "План" };
+  const sent = await call(`${server.url}/a/plan/questions`, { method: "POST", headers: { "content-type": "application/json", origin: server.url }, body });
+  const { status, id } = JSON.parse(sent.text);
+  assert.equal(status, "forked");
+  assert.deepEqual(await answer, { id, ok: true, text: "Потому что очередь живёт до перезапуска." });
+
+  const [run] = runs;
+  assert.equal(run.session, AGENT_PLACE.agent.session);
+  assert.equal(run.command, AGENT_PLACE.agent.command);
+  assert.equal(run.cwd, AGENT_PLACE.worktree);
+  assert.match(run.prompt, /«в памяти»/);
+  assert.match(run.prompt, /Вопрос: Почему\?/);
+  assert.deepEqual(JSON.parse((await call(`${server.url}/questions`)).text).questions, []);
+});
+
+test("сбой форка приходит на страницу как отказ с причиной", async (t) => {
+  const runFork = async () => {
+    throw new Error("форк завершился с кодом 1");
+  };
+  const { server, publish, token } = await setup(t, { runFork });
+  await publish({ id: "plan", html: "<p>шаг 1</p>", place: AGENT_PLACE });
+  const stream = answers(`${server.url}/a/plan/events`);
+  t.after(stream.close);
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  const answer = stream.next();
+  await call(`${server.url}/a/plan/questions`, { method: "POST", headers: { "content-type": "application/json", origin: server.url }, body: { token, quote: "шаг 1" } });
+  assert.deepEqual(await answer, { id: (await answer).id, ok: false, error: "форк завершился с кодом 1" });
+});
+
+test("публикация с чужой командой агента отклоняется", async (t) => {
+  const { publish } = await setup(t);
+  const place = { ...AGENT_PLACE, agent: { ...AGENT_PLACE.agent, command: "C:/Windows/System32/cmd.exe" } };
+  assert.equal((await publish({ id: "plan", html: "<p>x</p>", place })).status, 400);
+});
+
+test("вопрос с чужого сайта, с чужим ключом или без фрагмента не принимается", async (t) => {
+  const { server, publish, token } = await setup(t);
+  await publish({ id: "plan", html: "<p>шаг 1</p>" });
+  const ask = (body, origin = server.url) =>
+    call(`${server.url}/a/plan/questions`, { method: "POST", headers: { "content-type": "application/json", origin }, body });
+  assert.equal((await ask({ token, quote: "шаг 1" }, "http://evil.test")).status, 403);
+  assert.equal((await ask({ token: "x", quote: "шаг 1" })).status, 403);
+  assert.equal((await ask({ token, quote: " " })).status, 400);
+  assert.equal((await call(`${server.url}/a/none/questions`, { method: "POST", headers: { "content-type": "application/json", origin: server.url }, body: { token, quote: "x" } })).status, 404);
+  assert.equal((await call(`${server.url}/questions`, { headers: { origin: server.url } })).status, 403);
 });
