@@ -140,8 +140,8 @@ export function createArtifacts({ dir, onChange = () => {} }) {
     },
 
     read(id) {
-      const { kind, text } = currentOf(id);
-      return { kind, text };
+      const { kind, text, path } = currentOf(id);
+      return { kind, text, at: statSync(path).mtimeMs, place: readPlace(placeFileOf(id)) };
     },
 
     describe(id) {
@@ -166,8 +166,8 @@ export function createArtifacts({ dir, onChange = () => {} }) {
     readVersion(id, version) {
       checkId(id);
       if (!/^[0-9]{1,16}$/.test(version)) throw new ArtifactError(400, "Версия — число");
-      const { kind, text } = readKinded(join(historyOf(id), version), "Нет такой версии");
-      return { kind, text };
+      const { kind, text, path } = readKinded(join(historyOf(id), version), "Нет такой версии");
+      return { kind, text, at: statSync(path).mtimeMs, place: readPlace(join(historyOf(id), `${version}.json`)) };
     },
 
     list() {

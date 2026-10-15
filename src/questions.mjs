@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 
 const TEXT_LIMIT = 2000;
 const QUEUE_LIMIT = 100;
@@ -31,14 +32,26 @@ export function questionOf(page, input, version) {
   };
 }
 
-export function createQuestions({ log }) {
-  const queue = [];
+export function createQuestions({ log, file }) {
+  const queue = file && existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : [];
+  if (!Array.isArray(queue)) throw new Error("Очередь вопросов должна быть списком");
+  for (const question of queue) {
+    questionOf(question.page, question, question.version);
+    if (!/^[a-z0-9][a-z0-9-]{0,63}$/.test(question.page) || typeof question.id !== "string" || !Number.isFinite(question.at))
+      throw new Error("В очереди повреждён вопрос");
+  }
+  const persist = () => {
+    if (!file) return;
+    writeFileSync(`${file}.tmp`, JSON.stringify(queue), "utf8");
+    renameSync(`${file}.tmp`, file);
+  };
   const listeners = new Set();
   const matches = (page, question) => page === undefined || question.page === page;
 
   function take(page) {
     const taken = queue.filter((question) => matches(page, question));
     for (const question of taken) queue.splice(queue.indexOf(question), 1);
+    if (taken.length) persist();
     return taken;
   }
 
@@ -47,6 +60,7 @@ export function createQuestions({ log }) {
       const { page } = question;
       if (queue.length >= QUEUE_LIMIT) throw new QuestionError(429, `В очереди уже ${QUEUE_LIMIT} вопросов: агент их не забирает`);
       queue.push(question);
+      persist();
       const listening = [...listeners].filter((listener) => matches(listener.page, question)).length;
       log({ event: "question_queued", id: question.id, page, listening });
       [...listeners].find((listener) => matches(listener.page, question))?.wake();

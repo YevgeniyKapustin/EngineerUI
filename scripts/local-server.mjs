@@ -73,7 +73,7 @@ function git(...args) {
 
 export function placeOf() {
   const worktree = git("rev-parse", "--show-toplevel");
-  return worktree ? { worktree, branch: git("branch", "--show-current"), ...agentOf() } : undefined;
+  return { worktree: worktree || process.cwd().replaceAll("\\", "/"), branch: worktree ? git("branch", "--show-current") : "", ...agentOf() };
 }
 
 function agentOf() {

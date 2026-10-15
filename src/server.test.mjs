@@ -168,6 +168,40 @@ test("агент публикует лист виджетов, сервер ри
   assert.equal((await publish({ html: "<p>x</p>", sheet })).status, 400);
 });
 
+test("старый HTML получает текущий CSS, дату и происхождение при просмотре и скачивании", async (t) => {
+  const { server, publish } = await setup(t);
+  const html = '<html data-kit="v6"><head><title>Старый лист</title><style>.w-keyvalue { color: red; }</style></head><body><p>Снимок</p></body></html>';
+  const place = { worktree: "C:/work/project", branch: "fix/links" };
+  await publish({ id: "legacy", html, place });
+  for (const path of ["raw", "download"]) {
+    const page = await call(`${server.url}/a/legacy/${path}`);
+    assert.equal(page.status, 200);
+    assert.match(page.text, /<style data-agent-ui-layout>/);
+    assert.match(page.text, /minmax\(min\(160px, 100%\), 1fr\)/);
+    assert.match(page.text, /data-testid="publication-info"/);
+    assert.match(page.text, /C:\/work\/project · fix\/links/);
+    assert.match(page.text, /<time datetime="[^"]+">[^<]+Тбилиси/);
+  }
+  await publish({ id: "legacy", html: html.replace("Снимок</p>", "Новый снимок</p>"), place });
+  const previous = await call(`${server.url}/a/legacy/history/1`);
+  assert.match(previous.text, /<p>Снимок<\/p>/);
+  assert.doesNotMatch(previous.text, /Новый снимок<\/p>/);
+  assert.match(previous.text, /data-agent-ui-layout/);
+});
+
+test("снимок без каталога обозначает пробел и ссылается на связанный результат", async (t) => {
+  const { server, publish } = await setup(t);
+  const sheet = { title: "Проверка", panels: [{ title: "Итог", widgets: [{ kind: "text", text: "Снимок" }] }] };
+  await publish({ id: "flow-progress", sheet });
+  await publish({ id: "flow", sheet });
+  const progress = await call(`${server.url}/a/flow-progress/raw`);
+  assert.match(progress.text, /Каталог публикации не указан/);
+  assert.match(progress.text, /href="\/a\/flow"[^>]*>(Более новый|Связанный) результат<\/a>/);
+  const result = await call(`${server.url}/a/flow/raw`);
+  assert.match(result.text, /href="\/a\/flow-progress"[^>]*>Ход работы<\/a>/);
+  assert.equal((await publish({ html: "<p>Ответь в чате буквой.</p>" })).status, 400);
+});
+
 test("агент ждёт на /ask, человек отвечает со страницы, агент получает ответ", async (t) => {
   const { server, answer, ask, page } = await setup(t);
   assert.match(page.text, /Content-Security-Policy/);

@@ -38,6 +38,12 @@ const FILLER_PATTERN = new RegExp(`(?<!\\p{L})(${FILLER.join("|")})(?!\\p{L})`, 
 
 const quote = (value) => (value.length > QUOTE_CHARS ? `${value.slice(0, QUOTE_CHARS)}…` : value);
 
+function checkQuestionChannel(value, where) {
+  const instructions = value.replace(/«[^»]*»|"[^"\n]*"|`[^`\n]*`/gu, " ");
+  if (/(?<!\p{L})ответ(?:ь|ьте)\s+(?:[^.!?\n]{0,100}\s)?в\s+чате(?!\p{L})/iu.test(instructions))
+    fail(where, "вопрос требует экрана ask.mjs; после таймаута опубликуй ожидание, без просьбы ответить в чате");
+}
+
 function sentencesOf(value) {
   return value
     .replace(/`[^`\n]*`/g, "код")
@@ -93,6 +99,7 @@ export function storedText(parse) {
 
 export function checkSte(value, where) {
   if (!enforced) return value;
+  checkQuestionChannel(value, where);
   const problems = steProblems(value);
   if (!problems.length) return value;
   if (found) found.push(`${where}: ${problems.join("; ")}`);
@@ -120,6 +127,7 @@ export function checkHtmlSte(html, where) {
     .replace(BLOCK_TAGS, "\n")
     .replace(/<[^>]*>/g, "")
     .replace(/&(#?\w+);/g, (entity, name) => ENTITIES[name] ?? entity);
+  checkQuestionChannel(visible, where);
   const problems = visible
     .split("\n")
     .map((line) => line.replace(/\s+/g, " ").trim())

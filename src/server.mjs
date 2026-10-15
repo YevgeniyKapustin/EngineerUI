@@ -1,5 +1,6 @@
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import { createServer } from "node:http";
+import { join } from "node:path";
 import { FRAME_SANDBOX, historyOf, listOf, shellOf } from "./artifact-page.mjs";
 import { FAVICON } from "./favicon.mjs";
 import { createArtifacts, placeOf } from "./artifacts.mjs";
@@ -12,6 +13,7 @@ import { parseScreen } from "./screen.mjs";
 import { parseSheet } from "./sheet.mjs";
 import { checkHtmlSte, steChecked, storedText } from "./ste.mjs";
 import { renderSheet, sheetCss } from "./sheet-page.mjs";
+import { servedPage } from "./served-page.mjs";
 
 const BODY_LIMIT = 1024 * 1024;
 const ARTIFACT_LIMIT = 8 * 1024 * 1024;
@@ -109,7 +111,7 @@ export function startServer({ port = 0, timeoutMs = 10 * 60_000, artifactsDir, l
     for (const viewer of viewers) viewer.write(frame);
   };
   const asks = createAsks({ timeoutMs, log, onChange: broadcast });
-  const questions = createQuestions({ log });
+  const questions = createQuestions({ log, file: join(artifactsDir, ".questions.json") });
   const forks = createForks({ log, ...(runFork && { run: runFork }) });
   function checkHost(request) {
     if (request.headers.host !== new URL(origin).host)
@@ -143,8 +145,19 @@ export function startServer({ port = 0, timeoutMs = 10 * 60_000, artifactsDir, l
     const end = html.toLowerCase().lastIndexOf("</body>");
     return end < 0 ? html + EXPLAIN_SCRIPT : html.slice(0, end) + EXPLAIN_SCRIPT + html.slice(end);
   };
-  const pageHtml = ({ kind, text }) =>
-    withExplain(kind === "sheet" ? renderSheet(storedText(() => parseSheet(JSON.parse(text))), { origin, history: true }) : text);
+  const relatedOf = (id) => {
+    const progress = id.endsWith("-progress");
+    const other = progress ? id.slice(0, -9) : `${id}-progress`;
+    let related;
+    try { related = artifacts.describe(other); }
+    catch (error) { if ([400, 404].includes(error.status)) return undefined; throw error; }
+    if (!related) return undefined;
+    return { id: other, label: progress ? (related.at > artifacts.describe(id).at ? "Более новый результат" : "Связанный результат") : "Ход работы" };
+  };
+  const pageHtml = ({ kind, text, at, place }, related) => withExplain(servedPage(
+    kind === "sheet" ? renderSheet(storedText(() => parseSheet(JSON.parse(text))), { origin, history: true }) : text,
+    { styles: kind === "html", at, place, related },
+  ));
 
   const routes = {
     "GET /": (request, response) => send(response, 200, pageOf({ token, explain: explainScript }), HTML),
@@ -155,7 +168,7 @@ export function startServer({ port = 0, timeoutMs = 10 * 60_000, artifactsDir, l
       request.on("close", () => log({ event: "viewer_closed", viewers: viewers.size }));
     },
 
-    "GET /health": (request, response) => send(response, 200, { app: "agent-ui", viewers: viewers.size }),
+    "GET /health": (request, response) => send(response, 200, { app: "agent-ui", viewers: viewers.size, questions: asks.list().length, pid: process.pid }),
 
     "GET /favicon.svg": (request, response) =>
       send(response, 200, FAVICON, "image/svg+xml", { "cache-control": "max-age=86400" }),
@@ -253,7 +266,7 @@ data: ${JSON.stringify({ id: question.id, ...answer })}
       if (!response.writableEnded && !response.destroyed) send(response, 200, { questions: taken });
     },
 
-    "GET /a/:id/raw": (request, response, id) => send(response, 200, pageHtml(artifacts.read(id)), HTML, SANDBOXED),
+    "GET /a/:id/raw": (request, response, id) => send(response, 200, pageHtml(artifacts.read(id), relatedOf(id)), HTML, SANDBOXED),
 
     "GET /a/:id/download": (request, response, id) => {
       const version = new URL(request.url, origin).searchParams.get("version");
@@ -262,7 +275,7 @@ data: ${JSON.stringify({ id: question.id, ...answer })}
         stored.kind === "sheet"
           ? renderSheet(storedText(() => parseSheet(JSON.parse(stored.text))), { origin, kit: kitCss() })
           : stored.text.replace(/<link rel="stylesheet" href="[^"]*\/kit\.css">/, () => `<style>${kitCss()}</style>`);
-      send(response, 200, html, HTML, { ...SANDBOXED, "content-disposition": `attachment; filename="${id}.html"` });
+      send(response, 200, servedPage(html, { styles: stored.kind === "html", at: stored.at, place: stored.place }), HTML, { ...SANDBOXED, "content-disposition": `attachment; filename="${id}.html"` });
     },
 
     "GET /a/:id/history": (request, response, id) => {
@@ -278,8 +291,8 @@ data: ${JSON.stringify({ id: question.id, ...answer })}
       send(response, 200, pageHtml(artifacts.readVersion(id, version)), HTML, SANDBOXED),
 
     "GET /a/:id/events": (request, response, id) => {
-      artifacts.describe(id);
-      openStream(request, response, watchersOf(id), "");
+      const page = artifacts.describe(id);
+      openStream(request, response, watchersOf(id), `event: version\ndata: ${page.at}\n\n`);
     },
   };
 

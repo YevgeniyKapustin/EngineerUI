@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { escapeHtml, renderLink, renderText } from "./links.mjs";
 
 const RULER_COLUMNS = 8;
 const RULER_ROWS = ["A", "B", "C", "D"];
@@ -13,12 +14,11 @@ const VERDICT_LOOK = {
   pass: { mark: "✓", word: "норма", tone: "good" },
 };
 
-let css;
-export const sheetCss = () => (css ??= readFileSync(join(import.meta.dirname, "sheet.css"), "utf8"));
+export const sheetCss = () => readFileSync(join(import.meta.dirname, "sheet.css"), "utf8");
 
-const escape = (value) => String(value).replace(/[&<>"']/g, (char) => `&#${char.charCodeAt(0)};`);
+const escape = escapeHtml;
 const toneClass = (tone) => (tone ? ` tone-${tone}` : "");
-const optional = (value, render) => (value === undefined ? "" : render(escape(value)));
+const optional = (value, render) => (value === undefined ? "" : render(renderText(value)));
 const formatNumber = (value) => value.toLocaleString("ru-RU");
 const percent = (value, max) => `${Math.max(0, Math.min(100, (value / max) * 100)).toFixed(2)}%`;
 
@@ -73,7 +73,7 @@ const RENDER = {
   verdicts,
   options: ({ items }) => `<ol class="w-options" data-testid="widget-options">${items.map(option).join("")}</ol>`,
 
-  text: ({ text, muted }) => `<p class="w-text${muted ? " muted" : ""}">${escape(text)}</p>`,
+  text: ({ text, muted }) => `<p class="w-text${muted ? " muted" : ""}">${renderText(text)}</p>`,
 
   stats: ({ items }) =>
     `<div class="w-stats">${items
@@ -124,9 +124,7 @@ ${optional(item.delta, (delta) => `<span class="stat-delta">${delta}</span>`)}${
                 column.align ? `align-${column.align}` : "",
                 cell.tone ? `tone-${cell.tone}` : "",
               ].filter(Boolean);
-              const content = cell.link
-                ? `<a href="${escape(cell.link.href)}"${Object.entries(cell.link.data ?? {}).map(([name, value]) => ` data-${name}="${escape(value)}"`).join("")}>${escape(cell.text)}</a>`
-                : escape(cell.text);
+              const content = cell.link ? renderLink(cell.text, cell.link) : renderText(cell.text);
               return `<td${classes.length ? ` class="${classes.join(" ")}"` : ""}>${mark(cell.tone)}${content}</td>`;
             })
             .join("")}</tr>`,
@@ -172,14 +170,14 @@ ${optional(item.delta, (delta) => `<span class="stat-delta">${delta}</span>`)}${
 
   list: ({ items, ordered }) => {
     const tag = ordered ? "ol" : "ul";
-    return `<${tag} class="w-list">${items.map((item) => `<li>${escape(item)}</li>`).join("")}</${tag}>`;
+    return `<${tag} class="w-list">${items.map((item) => `<li>${renderText(item)}</li>`).join("")}</${tag}>`;
   },
 
   keyvalue: ({ items }) =>
-    `<dl class="w-keyvalue">${items.map((item) => `<div><dt>${escape(item.label)}</dt><dd>${escape(item.value)}</dd></div>`).join("")}</dl>`,
+    `<dl class="w-keyvalue">${items.map((item) => `<div><dt>${escape(item.label)}</dt><dd>${renderText(item.value)}</dd></div>`).join("")}</dl>`,
 
   callout: ({ tone, title, text }) =>
-    `<aside class="w-callout tone-${tone}" data-testid="widget-callout">${optional(title, (heading) => `<strong>${heading}</strong>`)}<p>${escape(text)}</p></aside>`,
+    `<aside class="w-callout tone-${tone}" data-testid="widget-callout">${optional(title, (heading) => `<strong>${heading}</strong>`)}<p>${renderText(text)}</p></aside>`,
 
   diff: ({ file, lines }) =>
     `<figure class="w-diff">${optional(file, (name) => `<figcaption class="mono">${name}</figcaption>`)}<pre>${lines

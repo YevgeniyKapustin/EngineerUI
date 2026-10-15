@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { WIDGETS, parseSheet } from "./sheet.mjs";
 import { renderSheet } from "./sheet-page.mjs";
+import { storedText } from "./ste.mjs";
 
 const ORIGIN = "http://127.0.0.1:1";
 const sheetOf = (...widgets) => ({ title: "Лист", panels: [{ title: "Панель", widgets }] });
@@ -64,4 +65,24 @@ test("шаги и тона таблицы получают свой знак", (
   assert.match(html, /class="step-done"><span class="step-mark" aria-hidden="true">✓/);
   assert.match(html, /class="step-failed"><span class="step-mark" aria-hidden="true">✗/);
   assert.match(html, /<td class="tone-bad"><span class="mark" aria-hidden="true">✗<\/span>has closed<\/td>/);
+});
+
+test("ссылка ячейки сохраняется, URL становятся ссылками, код сохраняет текст", () => {
+  const url = "https://example.test/ci?x=1&y=2";
+  const html = render(
+    { kind: "table", columns: ["Источник"], rows: [[{ text: "CI", link: { href: url } }]] },
+    { kind: "keyvalue", items: [["Адрес", url]] },
+    { kind: "code", text: url },
+  );
+  assert.match(html, /<a href="https:\/\/example.test\/ci\?x=1&#38;y=2"[^>]*>CI<\/a>/);
+  assert.match(html, /<dd><a href=/);
+  assert.match(html, /<pre>https:\/\/example.test\/ci\?x=1&#38;y=2<\/pre>/);
+  assert.match(refusal(sheetOf({ kind: "table", columns: ["А"], rows: [[{ text: "CI", link: { href: "javascript:alert(1)" } }]] })), /\.link\.href:/);
+});
+
+test("новая просьба ответить в чате отклоняется, цитата и старый лист доступны", () => {
+  const old = sheetOf({ kind: "text", text: "Вопрос истёк. Ответь в чате буквой варианта." });
+  assert.match(refusal(old), /вопрос требует экрана ask\.mjs/);
+  assert.doesNotThrow(() => storedText(() => parseSheet(old)));
+  assert.doesNotThrow(() => parseSheet(sheetOf({ kind: "text", text: "Прежняя фраза: «Ответь в чате»." })));
 });

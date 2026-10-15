@@ -38,7 +38,7 @@ export function kitCss() {
 function assetsOf() {
   if (assets) return assets;
   const own = (file) => readFileSync(join(import.meta.dirname, file), "utf8");
-  assets = { css: `${kitCss()}\n${sheetCss()}\n${own("page.css")}`, script: own("client.js") };
+  assets = { css: own("page.css"), script: own("client.js") };
   return assets;
 }
 
@@ -61,7 +61,7 @@ export function pageOf({ token, explain }) {
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>agent-ui</title>
 ${FAVICON_LINK}
-<style nonce="${nonce}">${css}</style></head>
+<style nonce="${nonce}">${kitCss()}\n${sheetCss()}\n${css}</style></head>
 <body data-token="${token}">
 ${frameOpen(` data-testid="ask-sheet"`)}
 <header class="stamp ask-idle" id="idle" data-testid="idle"><div class="stamp-title"><span class="stamp-eyebrow">Вопросы агента</span><h1 id="idle-title">Вопросов нет</h1><p id="idle-text">Агент пока ничего не спрашивает. Новый вопрос появится здесь сам.</p></div><div class="ask-cell"><span class="stamp-eyebrow">Состояние</span><span class="ask-cell-value"><span class="ask-pulse" aria-hidden="true"></span><span id="idle-state" data-testid="idle-state">ждёт</span></span></div></header>

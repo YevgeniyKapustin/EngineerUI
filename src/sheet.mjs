@@ -1,5 +1,6 @@
 import { fail, list, number, oneOf, text } from "./fields.mjs";
 import { checkSte, prose, proses } from "./ste.mjs";
+import { parseLink } from "./links.mjs";
 
 const TONES = ["good", "bad", "warn", "info", "neutral"];
 const STEP_STATES = ["done", "active", "todo", "failed", "skipped"];
@@ -21,6 +22,7 @@ function cell(value, where) {
     text: given.mono === true ? String(given.text ?? "") : checkSte(String(given.text ?? ""), `${where}.text`),
     tone: tone(given.tone, `${where}.tone`),
     mono: given.mono === true,
+    link: parseLink(given.link, `${where}.link`),
   };
 }
 
