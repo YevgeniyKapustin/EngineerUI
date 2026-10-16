@@ -61,7 +61,10 @@ node scripts/publish.mjs examples/widgets.json --id widgets
 - Адреса HTTP и HTTPS в обычном тексте становятся ссылками. Ячейка таблицы
   поддерживает `{"text":"CI","link":{"href":"https://example.com/pipeline"}}`.
 
-Правила для агента — [docs/agent-instructions.md](docs/agent-instructions.md).
+Правила для агента — [docs/agent-instructions.md](docs/agent-instructions.md): короткий блок
+в файле правил на каждом старте. Сборку листа описывает скилл `agent-ui` —
+[docs/agent-skill.md](docs/agent-skill.md); `npm run rules:install` ставит его в
+`~/.claude/skills` и `~/.codex/skills`.
 Все виджеты — [examples/widgets.json](examples/widgets.json).
 
 | Переменная            | По умолчанию          |

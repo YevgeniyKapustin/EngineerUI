@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 
@@ -9,13 +9,17 @@ const HOME = process.env.AGENT_UI_HOME ?? homedir();
 
 // omp читает ~/.codex/AGENTS.md как пользовательские правила, поэтому один файл покрывает Codex и omp
 const TARGETS = [
-  { name: "Claude Code", rules: join(HOME, ".claude", "CLAUDE.md") },
-  { name: "Codex и omp", rules: join(HOME, ".codex", "AGENTS.md") },
+  { name: "Claude Code", rules: join(HOME, ".claude", "CLAUDE.md"), skill: join(HOME, ".claude", "skills", "agent-ui") },
+  { name: "Codex и omp", rules: join(HOME, ".codex", "AGENTS.md"), skill: join(HOME, ".codex", "skills", "agent-ui") },
 ];
 
-function ruleBlock() {
-  const source = readFileSync(join(ROOT, "docs", "agent-instructions.md"), "utf8");
-  return source.trim().replaceAll("{{ROOT}}", ROOT);
+function skillFile(target) {
+  return join(target.skill, "SKILL.md");
+}
+
+function rendered(name, target) {
+  const source = readFileSync(join(ROOT, "docs", name), "utf8");
+  return source.trim().replaceAll("{{ROOT}}", ROOT).replaceAll("{{SKILL}}", skillFile(target).replaceAll("\\", "/"));
 }
 
 function blockRange(text) {
@@ -32,15 +36,18 @@ function install(target) {
   mkdirSync(dirname(target.rules), { recursive: true });
   const current = readOr(target.rules);
   const range = blockRange(current);
-  const block = ruleBlock();
+  const block = rendered("agent-instructions.md", target);
   const next = range
     ? `${current.slice(0, range[0])}${block}${current.slice(range[1])}`
     : `${current.trimEnd()}${current.trim() ? "\n\n" : ""}${block}\n`;
   writeFileSync(target.rules, next, "utf8");
-  return `правила ${range ? "обновлены" : "добавлены"} в ${target.rules}`;
+  mkdirSync(target.skill, { recursive: true });
+  writeFileSync(skillFile(target), `${rendered("agent-skill.md", target)}\n`, "utf8");
+  return `правила ${range ? "обновлены" : "добавлены"} в ${target.rules}, скилл — ${skillFile(target)}`;
 }
 
 function uninstall(target) {
+  rmSync(target.skill, { recursive: true, force: true });
   const current = readOr(target.rules);
   const range = blockRange(current);
   if (!range) return `блок не найден в ${target.rules}`;
@@ -51,7 +58,8 @@ function uninstall(target) {
 }
 
 function status(target) {
-  return blockRange(readOr(target.rules)) ? `блок есть в ${target.rules}` : `блока нет в ${target.rules}`;
+  const block = blockRange(readOr(target.rules)) ? `блок есть в ${target.rules}` : `блока нет в ${target.rules}`;
+  return `${block}, скилл ${existsSync(skillFile(target)) ? "есть" : "не найден"} в ${skillFile(target)}`;
 }
 
 const ACTIONS = { install, uninstall, status };
